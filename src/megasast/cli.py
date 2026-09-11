@@ -3,20 +3,29 @@ import os
 import sys
 import json
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from multiprocessing import Pool
 
 from megasast.discovery import discover
 from megasast.engine import scan_file
 from megasast.parser import TreeSitterParser
 from megasast.sarif import findings_to_sarif
 
-# Worker-scoped parser to avoid re-initialising per file
-_worker_parser = TreeSitterParser()
+_worker_parser = None
+_worker_allowed_rules = None
+_worker_excluded_rules = None
+_worker_allowed_severities = None
+
+def _init_worker(allowed_rules=None, excluded_rules=None, allowed_severities=None):
+    global _worker_parser, _worker_allowed_rules, _worker_excluded_rules, _worker_allowed_severities
+    _worker_parser = TreeSitterParser()
+    _worker_allowed_rules = allowed_rules
+    _worker_excluded_rules = excluded_rules
+    _worker_allowed_severities = allowed_severities
 
 def _worker_scan(path_str):
     path = Path(path_str)
     try:
-        return scan_file(path, _worker_parser)
+        return scan_file(path, _worker_parser, _worker_allowed_rules, _worker_excluded_rules, _worker_allowed_severities)
     except Exception as e:
         print(f"Error scanning {path_str}: {e}", file=sys.stderr)
         return []
@@ -81,26 +90,13 @@ def main():
     findings = []
     total = len(files)
     if workers > 1:
-        # Worker-scoped parser
-        _worker_parser = TreeSitterParser()
-        def _worker_scan(path_str):
-            from pathlib import Path
-            from megasast.engine import scan_file
-            p = Path(path_str)
-            try:
-                return scan_file(p, _worker_parser, allowed_rules, excluded_rules, allowed_severities)
-            except Exception:
-                return []
-        
         batch_size = 100
-        from concurrent.futures import ProcessPoolExecutor, as_completed
-        # Worker needs allowed_severities picklable
-        with ProcessPoolExecutor(max_workers=workers) as ex:
+        with Pool(processes=workers, initializer=_init_worker,
+                  initargs=(allowed_rules, excluded_rules, allowed_severities)) as pool:
             for i in range(0, len(files), batch_size):
                 batch = files[i:i+batch_size]
-                futures = {ex.submit(_worker_scan, str(f)): f for f in batch}
-                for fut in as_completed(futures):
-                    findings.extend(fut.result())
+                results = pool.map(_worker_scan, [str(f) for f in batch])
+                findings.extend(results)
                 if total > 0 and (i + batch_size) % max(1, total // 20) == 0:
                     print(f"Scanned {min(i+batch_size, total)}/{total} files...", file=sys.stderr)
     else:
