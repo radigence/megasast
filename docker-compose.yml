@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  megasast:
+    build: .
+    image: megasast:latest
+    container_name: megasast
+    volumes:
+      - ./scan-target:/scan-target:ro
+    command: scan /scan-target -o /output/report.sarif --format sarif
+    working_dir: /scan-target
+    environment:
+      - PYTHONUNBUFFERED=1

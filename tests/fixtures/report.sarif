@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "megasast",
+          "informationUri": "https://example.com/megasast",
+          "version": "0.1.0",
+          "rules": [
+            {
+              "id": "megasast/py-eval",
+              "name": "megasast/py-eval",
+              "shortDescription": {
+                "text": "megasast/py-eval"
+              },
+              "fullDescription": {
+                "text": ""
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "megasast/py-eval",
+          "level": "warning",
+          "message": {
+            "text": "Use of eval() \u2014 arbitrary code execution risk."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample_eval.py"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 4,
+                  "endLine": 1,
+                  "endColumn": 8,
+                  "snippet": {
+                    "text": "eval"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "originalUriBaseIds": {
+        "ROOT": {
+          "uri": ""
+        }
+      }
+    }
+  ]
+}
