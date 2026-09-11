@@ -16,7 +16,8 @@ RUN pip install --no-cache-dir -e .
 
 # Create a non-root user for security
 RUN useradd -m -u 1000 megasast && \
-    chown -R megasast:megasast /app
+    mkdir -p /output && \
+    chown -R megasast:megasast /app /output
 
 USER megasast
 

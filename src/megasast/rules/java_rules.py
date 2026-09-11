@@ -7,7 +7,7 @@ JAVA_RUNTIME_EXEC = Rule(
     severity="HIGH",
     languages=["java"],
     queries={
-        "java": "(method_invocation object: (method_invocation) @inner name: (identifier) @m (#eq? @m \"exec\"))",
+        "java": "(method_invocation object: (method_invocation object: (identifier) @runtime name: (identifier) @factory) name: (identifier) @method (#eq? @runtime \"Runtime\") (#eq? @factory \"getRuntime\") (#eq? @method \"exec\")) @match",
     },
     message="Use of Runtime.exec() — command injection risk.",
     tags=["security", "command-injection"]

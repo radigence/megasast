@@ -83,19 +83,26 @@ class TreeSitterParser:
             lang = self._languages[lang_name]
         except KeyError:
             return matches
-        for q_str in queries.values():
-            try:
-                query = Query(lang, q_str)
-            except Exception as e:
-                import sys
-                print(f"Warning: query compile error for {lang_name}: {q_str[:80]}... {e}", file=sys.stderr)
+        q_str = queries.get(lang_name)
+        if q_str is None:
+            return matches
+        try:
+            query = Query(lang, q_str)
+        except Exception as e:
+            import sys
+            print(f"Warning: query compile error for {lang_name}: {q_str[:80]}... {e}", file=sys.stderr)
+            return matches
+
+        cursor = QueryCursor(query)
+        for _pattern_idx, captures_dict in cursor.matches(tree.root_node):
+            # Rules should capture the expression to report as @match.  Retain a
+            # sensible fallback for third-party rules that have exactly one capture.
+            nodes = captures_dict.get("match")
+            capture_name = "match"
+            if nodes is None and len(captures_dict) == 1:
+                capture_name, nodes = next(iter(captures_dict.items()))
+            if nodes is None:
                 continue
-            cursor = QueryCursor(query)
-            for pattern_idx, captures_dict in cursor.matches(tree.root_node):
-                for name, nodes in captures_dict.items():
-                    for node in nodes:
-                        matches.append({
-                            "node": node,
-                            "capture": name,
-                        })
+            for node in nodes:
+                matches.append({"node": node, "capture": capture_name})
         return matches

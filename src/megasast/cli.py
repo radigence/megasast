@@ -30,22 +30,29 @@ def _worker_scan(path_str):
         print(f"Error scanning {path_str}: {e}", file=sys.stderr)
         return []
 
+
+def _positive_int(value):
+    value = int(value)
+    if value < 1:
+        raise argparse.ArgumentTypeError("must be at least 1")
+    return value
+
 def main():
     parser = argparse.ArgumentParser(prog="megasast", description="Simple SAST scanner with SARIF output")
+    parser.add_argument("--version", action="version", version="megasast 0.1.0")
     subparsers = parser.add_subparsers(dest="command", required=True)
     
     scan_parser = subparsers.add_parser("scan", help="Scan a path for issues")
     scan_parser.add_argument("path", nargs="?", default=".", help="Root path to scan")
     scan_parser.add_argument("-o", "--output", default=None, help="Output file (.sarif)")
     scan_parser.add_argument("--format", choices=["sarif", "text", "json"], default="sarif")
-    scan_parser.add_argument("--workers", type=int, default=None, help="Parallel workers (default: cpu_count)")
+    scan_parser.add_argument("--workers", type=_positive_int, default=None, help="Parallel workers (default: cpu_count)")
     scan_parser.add_argument("--fail-on", choices=["high", "medium", "low"], default=None)
     scan_parser.add_argument("--no-gitignore", action="store_true")
     scan_parser.add_argument("--rule", action="append", default=[], help="Only include specific rule(s)")
     scan_parser.add_argument("--no-rule", action="append", default=[], help="Exclude specific rule(s)")
     scan_parser.add_argument("--severity", nargs="+", choices=["high", "medium", "low"], default=None, help="Severity levels to report")
     scan_parser.add_argument("--baseline", default=None, help="Baseline SARIF file to diff against")
-    scan_parser.add_argument("--version", action="store_true", help="Show version")
     
     rules_parser = subparsers.add_parser("rules", help="List available rules")
     
@@ -60,32 +67,24 @@ def main():
             print(f"{r.id:<30} {r.severity:<8} {langs:<25} {r.name}")
         sys.exit(0)
     
-    if getattr(args, "version", False):
-        print("megasast 0.1.0")
-        sys.exit(0)
-    
-    # normalize args for scan
-    path = args.path
-
     root = Path(args.path).resolve()
     from megasast.config import load_config
     config = load_config(root)
-    # config overrides CLI args
+    # Explicit CLI values override project configuration.
     cli_allowed = set(args.rule) if args.rule else None
     cli_excluded = set(args.no_rule) if args.no_rule else None
     cli_severities = set(args.severity) if args.severity else None
     
-    allowed_rules = set(config.get("rules", {}).get("only", [])) if config.get("rules", {}).get("only") else cli_allowed
-    excluded_rules = set(config.get("rules", {}).get("exclude", [])) if config.get("rules", {}).get("exclude") else cli_excluded
-    # config can specify severities as list
-    config_severities = config.get("rules", {}).get("severity")
-    if config_severities:
-        allowed_severities = set(config_severities)
-    else:
-        allowed_severities = cli_severities
+    config_rules = config.get("rules", {})
+    config_allowed = set(config_rules.get("only", [])) or None
+    config_excluded = set(config_rules.get("exclude", [])) or None
+    config_severities = {str(value).lower() for value in config_rules.get("severity", [])} or None
+    allowed_rules = cli_allowed if cli_allowed is not None else config_allowed
+    excluded_rules = cli_excluded if cli_excluded is not None else config_excluded
+    allowed_severities = cli_severities if cli_severities is not None else config_severities
     
     files = discover(root, respect_gitignore=not args.no_gitignore)
-    workers = args.workers or os.cpu_count() or 1
+    workers = args.workers if args.workers is not None else (os.cpu_count() or 1)
     
     findings = []
     total = len(files)

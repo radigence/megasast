@@ -7,8 +7,8 @@ JS_EVAL = Rule(
     severity="HIGH",
     languages=["javascript", "typescript"],
     queries={
-        "javascript": "(call_expression function: (identifier) @f (#eq? @f \"eval\"))",
-        "typescript": "(call_expression function: (identifier) @f (#eq? @f \"eval\"))",
+        "javascript": "(call_expression function: (identifier) @f (#eq? @f \"eval\")) @match",
+        "typescript": "(call_expression function: (identifier) @f (#eq? @f \"eval\")) @match",
     },
     message="Use of eval() — arbitrary code execution risk.",
     tags=["security", "injection"]
@@ -21,8 +21,8 @@ JS_NEW_FUNCTION = Rule(
     severity="HIGH",
     languages=["javascript", "typescript"],
     queries={
-        "javascript": "(new_expression constructor: (identifier) @f (#eq? @f \"Function\"))",
-        "typescript": "(new_expression constructor: (identifier) @f (#eq? @f \"Function\"))",
+        "javascript": "(new_expression constructor: (identifier) @f (#eq? @f \"Function\")) @match",
+        "typescript": "(new_expression constructor: (identifier) @f (#eq? @f \"Function\")) @match",
     },
     message="Use of new Function() — arbitrary code execution risk.",
     tags=["security", "injection"]
@@ -35,8 +35,8 @@ JS_INNERHTML = Rule(
     severity="MEDIUM",
     languages=["javascript", "typescript"],
     queries={
-        "javascript": "(assignment_expression left: (member_expression property: (property_identifier) @p (#eq? @p \"innerHTML\")))",
-        "typescript": "(assignment_expression left: (member_expression property: (property_identifier) @p (#eq? @p \"innerHTML\")))",
+        "javascript": "(assignment_expression left: (member_expression property: (property_identifier) @p (#eq? @p \"innerHTML\"))) @match",
+        "typescript": "(assignment_expression left: (member_expression property: (property_identifier) @p (#eq? @p \"innerHTML\"))) @match",
     },
     message="Assignment to innerHTML — potential XSS.",
     tags=["security", "xss"]
@@ -44,13 +44,13 @@ JS_INNERHTML = Rule(
 
 JS_CHILD_PROCESS_EXEC = Rule(
     id="megasast/js-child-process-exec",
-    name="child_process.exec usage",
-    description="child_process.exec can lead to command injection.",
+    name="JavaScript child_process.exec usage",
+    description="Direct child_process.exec calls can lead to command injection.",
     severity="HIGH",
     languages=["javascript", "typescript"],
     queries={
-        "javascript": "(call_expression function: (member_expression property: (property_identifier) @p (#eq? @p \"exec\")))",
-        "typescript": "(call_expression function: (member_expression property: (property_identifier) @p (#eq? @p \"exec\")))",
+        "javascript": "(call_expression function: (member_expression object: (identifier) @obj property: (property_identifier) @p (#eq? @obj \"child_process\") (#eq? @p \"exec\"))) @match",
+        "typescript": "(call_expression function: (member_expression object: (identifier) @obj property: (property_identifier) @p (#eq? @obj \"child_process\") (#eq? @p \"exec\"))) @match",
     },
     message="Use of child_process.exec — command injection risk.",
     tags=["security", "command-injection"]

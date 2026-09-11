@@ -7,7 +7,7 @@ GO_EXEC_CMD = Rule(
     severity="HIGH",
     languages=["go"],
     queries={
-        "go": "(call_expression function: (selector_expression) @sel (#eq? @sel \"exec.Command\"))",
+        "go": "(call_expression function: (selector_expression) @sel (#eq? @sel \"exec.Command\")) @match",
     },
     message="Use of exec.Command — command injection risk.",
     tags=["security", "command-injection"]

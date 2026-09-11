@@ -6,7 +6,8 @@ from megasast.findings import Finding
 def _node_range(node):
     start_point = node.start_point  # (row, col)
     end_point = node.end_point
-    return start_point[0] + 1, start_point[1], end_point[0] + 1, end_point[1]
+    # Tree-sitter columns are zero-based; SARIF columns are one-based.
+    return start_point[0] + 1, start_point[1] + 1, end_point[0] + 1, end_point[1] + 1
 
 def _is_suppressed(data: bytes, start_line: int, rule_id: str):
     # Simple suppression: check if previous lines contain # megasast:ignore <rule_id>
@@ -47,20 +48,6 @@ def scan_file(path: Path, parser: TreeSitterParser, allowed_rules=None, excluded
         matches = parser.run_queries(tree, lang_name, queries)
         for m in matches:
             node = m["node"]
-            # PHP post-filter for function names
-            if lang_name == "php":
-                try:
-                    func_name = node.text.decode("utf-8", errors="replace")
-                    if rule.id == "megasast/php-eval" and func_name != "eval":
-                        continue
-                    if rule.id == "megasast/php-exec" and func_name != "exec":
-                        continue
-                    if rule.id == "megasast/php-shell-exec" and func_name != "shell_exec":
-                        continue
-                    if rule.id == "megasast/php-unserialize" and func_name != "unserialize":
-                        continue
-                except Exception:
-                    continue
             start_line, start_col, end_line, end_col = _node_range(node)
             if _is_suppressed(data, start_line, rule.id):
                 continue

@@ -7,6 +7,7 @@ services:
     container_name: megasast
     volumes:
       - ./scan-target:/scan-target:ro
+      - ./output:/output
     command: scan /scan-target -o /output/report.sarif --format sarif
     working_dir: /scan-target
     environment:

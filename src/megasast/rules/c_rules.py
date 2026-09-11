@@ -7,8 +7,8 @@ C_SYSTEM = Rule(
     severity="HIGH",
     languages=["c", "cpp"],
     queries={
-        "c": "(call_expression function: (identifier) @f (#eq? @f \"system\"))",
-        "cpp": "(call_expression function: (identifier) @f (#eq? @f \"system\"))",
+        "c": "(call_expression function: (identifier) @f (#eq? @f \"system\")) @match",
+        "cpp": "(call_expression function: (identifier) @f (#eq? @f \"system\")) @match",
     },
     message="Use of system() — command injection risk.",
     tags=["security", "command-injection"]
@@ -21,8 +21,8 @@ C_STRCPY = Rule(
     severity="MEDIUM",
     languages=["c", "cpp"],
     queries={
-        "c": "(call_expression function: (identifier) @f (#eq? @f \"strcpy\"))",
-        "cpp": "(call_expression function: (identifier) @f (#eq? @f \"strcpy\"))",
+        "c": "(call_expression function: (identifier) @f (#eq? @f \"strcpy\")) @match",
+        "cpp": "(call_expression function: (identifier) @f (#eq? @f \"strcpy\")) @match",
     },
     message="Use of strcpy() — buffer overflow risk.",
     tags=["security", "buffer-overflow"]

@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
 from megasast.config import SKIP_DIRS, MAX_FILE_SIZE
@@ -8,46 +7,52 @@ from megasast.config import SKIP_DIRS, MAX_FILE_SIZE
 def is_skipped_dir(name: str) -> bool:
     return name in SKIP_DIRS
 
+
+def _gitignore_patterns(root: Path) -> list[tuple[Path, list[GitWildMatchPattern]]]:
+    """Return .gitignore patterns in parent-before-child evaluation order."""
+    patterns_by_dir = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(d for d in dirnames if not is_skipped_dir(d))
+        if ".gitignore" not in filenames:
+            continue
+        path = Path(dirpath) / ".gitignore"
+        try:
+            patterns = [
+                GitWildMatchPattern(line)
+                for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
+                if line and not line.startswith("#")
+            ]
+        except (OSError, ValueError):
+            continue
+        patterns_by_dir.append((Path(dirpath), patterns))
+    return patterns_by_dir
+
+
+def _is_gitignored(path: Path, patterns_by_dir: list[tuple[Path, list[GitWildMatchPattern]]]) -> bool:
+    """Apply each .gitignore relative to the directory that owns it."""
+    ignored = False
+    for base, patterns in patterns_by_dir:
+        try:
+            relative = path.relative_to(base).as_posix()
+        except ValueError:
+            continue
+        for pattern in patterns:
+            if pattern.match_file(relative):
+                # In pathspec, ordinary ignore patterns have include=True and
+                # negated patterns have include=False.
+                ignored = bool(pattern.include)
+    return ignored
+
+
 def discover(root: Path, respect_gitignore: bool = True) -> list[Path]:
     files = []
-    
-    # Build gitignore specs for each directory
-    gitignore_specs = {}
-    if respect_gitignore:
-        # Walk once to collect gitignore files
-        for dirpath, dirnames, filenames in os.walk(root):
-            base = Path(dirpath)
-            if ".gitignore" in filenames:
-                gitignore_path = base / ".gitignore"
-                try:
-                    patterns = gitignore_path.read_text(encoding="utf-8", errors="ignore").splitlines()
-                    spec = PathSpec.from_lines(GitWildMatchPattern, patterns)
-                    gitignore_specs[str(base)] = spec
-                except Exception:
-                    pass
-            # prune skipped dirs
-            dirnames[:] = [d for d in dirnames if not is_skipped_dir(d)]
-    else:
-        gitignore_specs = {}
+    root = root.resolve()
+    patterns_by_dir = _gitignore_patterns(root) if respect_gitignore else []
 
     for dirpath, dirnames, filenames in os.walk(root):
         # prune skipped dirs in-place
-        dirnames[:] = [d for d in dirnames if not is_skipped_dir(d)]
+        dirnames[:] = sorted(d for d in dirnames if not is_skipped_dir(d))
         base = Path(dirpath)
-        rel_base = base.relative_to(root)
-        # Find applicable gitignore specs (from this dir and parents)
-        specs = []
-        current = base
-        while True:
-            key = str(current)
-            if key in gitignore_specs:
-                specs.append(gitignore_specs[key])
-            if current == root:
-                break
-            try:
-                current = current.parent
-            except ValueError:
-                break
         for name in filenames:
             path = base / name
             # size cap
@@ -56,16 +61,7 @@ def discover(root: Path, respect_gitignore: bool = True) -> list[Path]:
                     continue
             except OSError:
                 continue
-            # gitignore
-            if specs:
-                rel = str(rel_base / name).replace(os.sep, "/")
-                # check each spec from root down
-                ignored = False
-                for spec in specs:
-                    if spec.match_file(rel):
-                        ignored = True
-                        break
-                if ignored:
-                    continue
+            if _is_gitignored(path, patterns_by_dir):
+                continue
             files.append(path)
     return files

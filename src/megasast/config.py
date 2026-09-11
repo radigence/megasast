@@ -15,15 +15,26 @@ SKIP_DIRS = {
 MAX_FILE_SIZE = 1_000_000  # 1 MB
 
 def load_config(root):
-    import tomllib
     from pathlib import Path
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
+
+    root = Path(root).resolve()
+    current = root
     config_path = None
-    # Look for megasast.toml or .megasast.toml in root and parents
-    for candidate in [root / "megasast.toml", root / ".megasast.toml"]:
-        if candidate.is_file():
-            config_path = candidate
+    # Use the closest project configuration, allowing scans from subdirectories.
+    while True:
+        for candidate in (current / "megasast.toml", current / ".megasast.toml"):
+            if candidate.is_file():
+                config_path = candidate
+                break
+        if config_path or current.parent == current:
             break
-    if not config_path:
+        current = current.parent
+
+    if config_path is None:
         return {}
     try:
         data = tomllib.loads(config_path.read_text(encoding="utf-8"))
