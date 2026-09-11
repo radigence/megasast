@@ -113,7 +113,6 @@ def main():
     # Baseline diff
     if args.baseline:
         try:
-            import json
             baseline_data = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
             baseline_results = set()
             for run in baseline_data.get("runs", []):
