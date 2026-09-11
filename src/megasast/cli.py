@@ -37,6 +37,11 @@ def _positive_int(value):
         raise argparse.ArgumentTypeError("must be at least 1")
     return value
 
+
+def _flatten_worker_results(results):
+    """Flatten the list of per-file finding lists returned by Pool.map."""
+    return [finding for file_findings in results for finding in file_findings]
+
 def main():
     parser = argparse.ArgumentParser(prog="megasast", description="Simple SAST scanner with SARIF output")
     parser.add_argument("--version", action="version", version="megasast 0.1.0")
@@ -95,7 +100,7 @@ def main():
             for i in range(0, len(files), batch_size):
                 batch = files[i:i+batch_size]
                 results = pool.map(_worker_scan, [str(f) for f in batch])
-                findings.extend(results)
+                findings.extend(_flatten_worker_results(results))
                 if total > 0 and (i + batch_size) % max(1, total // 20) == 0:
                     print(f"Scanned {min(i+batch_size, total)}/{total} files...", file=sys.stderr)
     else:
