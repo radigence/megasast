@@ -1,5 +1,18 @@
 import json
 
+
+BANNER = r"""
+ __  __ _____ ____    _    ____    _    ____ _____
+|  \/  | ____/ ___|  / \  / ___|  / \  / ___|_   _|
+| |\/| |  _|| |  _  / _ \ \___ \ / _ \ \___ \ | |
+| |  | | |__| |_| |/ ___ \ ___) / ___ \ ___) || |
+|_|  |_|_____\____/_/   \_\____/_/   \_\____/ |_|
+""".strip()
+
+
+def print_banner():
+    print(BANNER)
+
 def print_summary(findings):
     if not findings:
         print("No findings.")

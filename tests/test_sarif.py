@@ -37,3 +37,7 @@ def test_sarif_schema_valid():
     assert rule["name"] == "Python eval() usage"
     assert rule["shortDescription"]["text"] == "Python eval() usage"
     assert rule["fullDescription"]["text"] == "Use of eval() can lead to arbitrary code execution."
+    assert "Avoid eval()" in rule["help"]["text"]
+    assert rule["properties"]["remediation"]
+    assert "Suggested fix:" in result["message"]["text"]
+    assert result["properties"]["description"] == rule["fullDescription"]["text"]

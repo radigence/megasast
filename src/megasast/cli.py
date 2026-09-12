@@ -9,6 +9,8 @@ from megasast.discovery import discover
 from megasast.engine import scan_file
 from megasast.parser import TreeSitterParser
 from megasast.sarif import findings_to_sarif
+from megasast.rules.registry import RULES
+from megasast.console import print_banner
 
 _worker_parser = None
 _worker_allowed_rules = None
@@ -42,6 +44,29 @@ def _flatten_worker_results(results):
     """Flatten the list of per-file finding lists returned by Pool.map."""
     return [finding for file_findings in results for finding in file_findings]
 
+
+def _finding_to_json(finding, rule):
+    """Serialize a finding with the rule context needed by downstream tools."""
+    description = rule.description if rule else ""
+    remediation = rule.remediation if rule else ""
+    tags = rule.tags if rule else []
+    return {
+        "rule_id": finding.rule_id,
+        "rule_name": rule.name if rule else finding.rule_id,
+        "message": finding.message,
+        "description": description,
+        "remediation": remediation,
+        "suggested_fix": remediation,
+        "tags": tags,
+        "path": finding.path,
+        "start_line": finding.start_line,
+        "start_column": finding.start_column,
+        "end_line": finding.end_line,
+        "end_column": finding.end_column,
+        "snippet": finding.snippet,
+        "severity": finding.severity,
+    }
+
 def main():
     parser = argparse.ArgumentParser(prog="megasast", description="Simple SAST scanner with SARIF output")
     parser.add_argument("--version", action="version", version="megasast 0.1.0")
@@ -62,6 +87,7 @@ def main():
     rules_parser = subparsers.add_parser("rules", help="List available rules")
     
     args = parser.parse_args()
+    print_banner()
     
     if args.command == "rules":
         from megasast.rules.registry import RULES
@@ -141,19 +167,10 @@ def main():
         Path(out).write_text(json.dumps(sarif, indent=2), encoding="utf-8")
         print(f"Wrote {len(findings)} findings to {out}")
     elif args.format == "json":
+        rule_lookup = {rule.id: rule for rule in RULES}
         out_data = {
             "findings": [
-                {
-                    "rule_id": f.rule_id,
-                    "message": f.message,
-                    "path": f.path,
-                    "start_line": f.start_line,
-                    "start_column": f.start_column,
-                    "end_line": f.end_line,
-                    "end_column": f.end_column,
-                    "snippet": f.snippet,
-                    "severity": f.severity,
-                }
+                _finding_to_json(f, rule_lookup.get(f.rule_id))
                 for f in findings
             ]
         }

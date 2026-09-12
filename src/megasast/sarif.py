@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from megasast.findings import Finding
 from megasast.rules.registry import RULES
@@ -38,13 +37,21 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
                 "name": name,
                 "shortDescription": {"text": name},
                 "fullDescription": {"text": description},
+                "help": {"text": rule.remediation or description},
                 "defaultConfiguration": {"level": default_level},
-                "properties": {"tags": tags},
+                "properties": {
+                    "tags": tags,
+                    "description": description,
+                    "remediation": rule.remediation,
+                    "severity": severity,
+                },
                 "helpUri": f"https://github.com/matt/megasast#rule-{rule_id}",
             }
     for f in findings:
         rule_id = f.rule_id
-        # rules_map already populated with all rules
+        rule = rule_lookup.get(rule_id)
+        description = rule.description if rule else ""
+        remediation = rule.remediation if rule else ""
 
         # map severity from finding
         sev_lower = str(f.severity).lower()
@@ -59,7 +66,21 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
         results.append({
             "ruleId": rule_id,
             "level": level,
-            "message": {"text": f.message},
+            "message": {
+                "text": " ".join(
+                    part for part in (
+                        f.message,
+                        description,
+                        f"Suggested fix: {remediation}" if remediation else "",
+                    ) if part
+                )
+            },
+            "properties": {
+                "description": description,
+                "remediation": remediation,
+                "tags": rule.tags if rule else [],
+                "severity": f.severity,
+            },
             "locations": [{
                 "physicalLocation": {
                     "artifactLocation": {"uri": _rel_uri(f.path, root)},
