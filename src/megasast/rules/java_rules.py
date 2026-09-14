@@ -11,7 +11,9 @@ JAVA_RUNTIME_EXEC = Rule(
     },
     message="Use of Runtime.exec() — command injection risk.",
     remediation="Use ProcessBuilder with a fixed executable and separate arguments; validate untrusted input before execution.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 JAVA_MESSAGE_DIGEST_MD5 = Rule(

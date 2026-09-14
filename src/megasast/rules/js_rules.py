@@ -12,7 +12,9 @@ JS_EVAL = Rule(
     },
     message="Use of eval() — arbitrary code execution risk.",
     remediation="Avoid eval(). Parse the expected data format and use an allow-list for supported operations.",
-    tags=["security", "injection"]
+    tags=["security", "injection"],
+    cwe="CWE-94",
+    owasp="A03:2021 Injection"
 )
 
 JS_NEW_FUNCTION = Rule(
@@ -27,7 +29,9 @@ JS_NEW_FUNCTION = Rule(
     },
     message="Use of new Function() — arbitrary code execution risk.",
     remediation="Avoid dynamic function construction. Use explicit functions or a constrained expression parser.",
-    tags=["security", "injection"]
+    tags=["security", "injection"],
+    cwe="CWE-94",
+    owasp="A03:2021 Injection"
 )
 
 JS_INNERHTML = Rule(
@@ -42,7 +46,9 @@ JS_INNERHTML = Rule(
     },
     message="Assignment to innerHTML — potential XSS.",
     remediation="Prefer textContent for text. If HTML is required, sanitize it with a vetted allow-list sanitizer before assignment.",
-    tags=["security", "xss"]
+    tags=["security", "xss"],
+    cwe="CWE-79",
+    owasp="A03:2021 Injection"
 )
 
 JS_CHILD_PROCESS_EXEC = Rule(
@@ -57,7 +63,9 @@ JS_CHILD_PROCESS_EXEC = Rule(
     },
     message="Use of child_process.exec — command injection risk.",
     remediation="Prefer execFile or spawn with a fixed executable and argument array; validate untrusted input.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 JS_CHILD_PROCESS_EXEC_SYNC = Rule(

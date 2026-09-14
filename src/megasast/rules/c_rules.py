@@ -12,7 +12,9 @@ C_SYSTEM = Rule(
     },
     message="Use of system() — command injection risk.",
     remediation="Avoid system(). Use execve or a similar API with a fixed executable and validated argument vector.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 C_STRCPY = Rule(
@@ -27,7 +29,9 @@ C_STRCPY = Rule(
     },
     message="Use of strcpy() — buffer overflow risk.",
     remediation="Use a length-bounded copy and validate destination capacity before copying data.",
-    tags=["security", "buffer-overflow"]
+    tags=["security", "buffer-overflow"],
+    cwe="CWE-120",
+    owasp="A04:2021 Insecure Design"
 )
 
 C_GETS = Rule(

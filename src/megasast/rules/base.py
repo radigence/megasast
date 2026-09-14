@@ -12,6 +12,8 @@ class Rule:
     message: str
     remediation: str = ""
     tags: List[str] = field(default_factory=list)
+    cwe: str | None = None
+    owasp: str | None = None
 
     def __post_init__(self):
         if self.severity.upper() not in {"HIGH", "MEDIUM", "LOW", "INFO", "NOTE"}:

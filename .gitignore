@@ -6,5 +6,7 @@ dist/
 build/
 .pytest_cache/
 .coverage
+results.sarif
+results.json
 htmlcov/
 .mypy_cache/

@@ -11,7 +11,9 @@ PYTHON_EVAL = Rule(
     },
     message="Use of eval() — arbitrary code execution risk.",
     remediation="Avoid eval(). Parse the expected input format or use a strict allow-list of supported operations.",
-    tags=["security", "injection"]
+    tags=["security", "injection"],
+    cwe="CWE-94",
+    owasp="A03:2021 Injection"
 )
 
 PYTHON_EXEC = Rule(
@@ -25,7 +27,9 @@ PYTHON_EXEC = Rule(
     },
     message="Use of exec() — arbitrary code execution risk.",
     remediation="Avoid exec(). Replace dynamic code execution with explicit functions or a constrained interpreter.",
-    tags=["security", "injection"]
+    tags=["security", "injection"],
+    cwe="CWE-94",
+    owasp="A03:2021 Injection"
 )
 
 PYTHON_OS_SYSTEM = Rule(
@@ -39,7 +43,9 @@ PYTHON_OS_SYSTEM = Rule(
     },
     message="Use of os.system() — command injection risk.",
     remediation="Use subprocess.run with an argument list and validate untrusted input; do not invoke a shell.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 PYTHON_PICKLE_LOAD = Rule(
@@ -53,7 +59,9 @@ PYTHON_PICKLE_LOAD = Rule(
     },
     message="Use of pickle.load() — arbitrary code execution risk.",
     remediation="Do not unpickle untrusted data. Prefer a data-only format such as JSON and validate its schema.",
-    tags=["security", "deserialization"]
+    tags=["security", "deserialization"],
+    cwe="CWE-502",
+    owasp="A08:2021 Software and Data Integrity Failures"
 )
 
 PYTHON_YAML_LOAD = Rule(
@@ -67,7 +75,9 @@ PYTHON_YAML_LOAD = Rule(
     },
     message="Use of yaml.load() — arbitrary code execution risk.",
     remediation="Use yaml.safe_load() for untrusted YAML and validate the resulting data structure.",
-    tags=["security", "deserialization"]
+    tags=["security", "deserialization"],
+    cwe="CWE-502",
+    owasp="A08:2021 Software and Data Integrity Failures"
 )
 
 PYTHON_SUBPROCESS_SHELL = Rule(
@@ -81,7 +91,9 @@ PYTHON_SUBPROCESS_SHELL = Rule(
     },
     message="Use of subprocess.Popen with shell=True — command injection risk.",
     remediation="Pass shell=False and supply a fixed executable with an argument list; validate any user-controlled arguments.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 PYTHON_SSL_UNVERIFIED_CONTEXT = Rule(

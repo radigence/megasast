@@ -11,7 +11,9 @@ GO_EXEC_CMD = Rule(
     },
     message="Use of exec.Command — command injection risk.",
     remediation="Use a fixed executable and validated, allow-listed arguments. Do not construct shell commands from untrusted input.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 GO_CRYPTO_MD5 = Rule(

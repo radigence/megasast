@@ -2,8 +2,8 @@ import argparse
 import os
 import sys
 import json
+import multiprocessing
 from pathlib import Path
-from multiprocessing import Pool
 
 from megasast.discovery import discover
 from megasast.engine import scan_file
@@ -121,8 +121,12 @@ def main():
     total = len(files)
     if workers > 1:
         batch_size = 100
-        with Pool(processes=workers, initializer=_init_worker,
-                  initargs=(allowed_rules, excluded_rules, allowed_severities)) as pool:
+        # Use the "spawn" start method: forking a process that holds native
+        # (tree-sitter) state can deadlock. spawn re-imports cleanly and is the
+        # default on Windows anyway, so behavior stays consistent across OSes.
+        ctx = multiprocessing.get_context("spawn")
+        with ctx.Pool(processes=workers, initializer=_init_worker,
+                      initargs=(allowed_rules, excluded_rules, allowed_severities)) as pool:
             for i in range(0, len(files), batch_size):
                 batch = files[i:i+batch_size]
                 results = pool.map(_worker_scan, [str(f) for f in batch])
@@ -180,6 +184,9 @@ def main():
     else:
         for f in findings:
             print(f"{f.path}:{f.start_line}:{f.start_column} {f.rule_id} {f.message}")
+
+    from megasast.console import print_summary
+    print_summary(findings)
 
     # exit code
     if args.fail_on:

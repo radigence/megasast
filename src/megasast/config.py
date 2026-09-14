@@ -12,6 +12,12 @@ SKIP_DIRS = {
     "third_party",
 }
 
+# Hard cap on the size of any single file the scanner will parse. This is the
+# DoS bound for untrusted input: a crafted file could otherwise drive the
+# parser for an unbounded amount of time. (The current tree-sitter Python
+# binding does not expose a per-parse timeout, so the size cap is the
+# enforcement point. Keep it small enough to bound worst-case parse cost while
+# still covering legitimately large source files.)
 MAX_FILE_SIZE = 1_000_000  # 1 MB
 
 def load_config(root):

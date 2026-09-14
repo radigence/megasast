@@ -9,7 +9,9 @@ PHP_EVAL = Rule(
     queries={"php": "(function_call_expression (name) @f (#eq? @f \"eval\")) @match"},
     message="Use of eval() — arbitrary code execution risk.",
     remediation="Avoid eval(). Use an explicit parser or a strict allow-list of supported operations.",
-    tags=["security", "injection"]
+    tags=["security", "injection"],
+    cwe="CWE-94",
+    owasp="A03:2021 Injection"
 )
 
 PHP_EXEC = Rule(
@@ -21,7 +23,9 @@ PHP_EXEC = Rule(
     queries={"php": "(function_call_expression (name) @f (#eq? @f \"exec\")) @match"},
     message="Use of exec() — command injection risk.",
     remediation="Avoid shell execution where possible. Use a fixed command and validate or allow-list untrusted arguments.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 PHP_SHELL_EXEC = Rule(
@@ -33,7 +37,9 @@ PHP_SHELL_EXEC = Rule(
     queries={"php": "(function_call_expression (name) @f (#eq? @f \"shell_exec\")) @match"},
     message="Use of shell_exec() — command injection risk.",
     remediation="Avoid shell execution where possible. Use a fixed command and validate or allow-list untrusted arguments.",
-    tags=["security", "command-injection"]
+    tags=["security", "command-injection"],
+    cwe="CWE-78",
+    owasp="A03:2021 Injection"
 )
 
 PHP_UNSER = Rule(
@@ -45,7 +51,9 @@ PHP_UNSER = Rule(
     queries={"php": "(function_call_expression (name) @f (#eq? @f \"unserialize\")) @match"},
     message="Use of unserialize() — object injection risk.",
     remediation="Do not unserialize untrusted data. Prefer JSON and validate the decoded structure.",
-    tags=["security", "deserialization"]
+    tags=["security", "deserialization"],
+    cwe="CWE-502",
+    owasp="A08:2021 Software and Data Integrity Failures"
 )
 
 PHP_MD5 = Rule(
