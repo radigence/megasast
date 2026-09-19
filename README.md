@@ -1,5 +1,7 @@
 # megasast
 
+[![tests](https://github.com/radigence/megasast/actions/workflows/tests.yml/badge.svg)](https://github.com/radigence/megasast/actions/workflows/tests.yml)
+
 ```text
  __  __ _____ ____    _    ____    _    ____ _____
 |  \/  | ____/ ___|  / \  / ___|  / \  / ___|_   _|

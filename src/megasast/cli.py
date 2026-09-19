@@ -90,7 +90,6 @@ def main():
     print_banner()
     
     if args.command == "rules":
-        from megasast.rules.registry import RULES
         print(f"{'ID':<30} {'Severity':<8} {'Languages':<25} Name")
         print("-" * 80)
         for r in RULES:
