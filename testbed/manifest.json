@@ -1,0 +1,621 @@
+[
+  {
+    "file": "python/py_eval.py",
+    "expected_rules": [
+      "megasast/py-eval"
+    ]
+  },
+  {
+    "file": "python/py_exec.py",
+    "expected_rules": [
+      "megasast/py-exec"
+    ]
+  },
+  {
+    "file": "python/py_os_system.py",
+    "expected_rules": [
+      "megasast/py-os-system"
+    ]
+  },
+  {
+    "file": "python/py_pickle_load.py",
+    "expected_rules": [
+      "megasast/py-pickle-load"
+    ]
+  },
+  {
+    "file": "python/py_pickle_loads.py",
+    "expected_rules": [
+      "megasast/py-pickle-loads"
+    ]
+  },
+  {
+    "file": "python/py_marshal_load.py",
+    "expected_rules": [
+      "megasast/py-marshal-load"
+    ]
+  },
+  {
+    "file": "python/py_yaml_load.py",
+    "expected_rules": [
+      "megasast/py-yaml-load"
+    ]
+  },
+  {
+    "file": "python/py_subprocess_shell.py",
+    "expected_rules": [
+      "megasast/py-subprocess-shell"
+    ]
+  },
+  {
+    "file": "python/py_asyncio_subprocess_shell.py",
+    "expected_rules": [
+      "megasast/py-asyncio-subprocess-shell"
+    ]
+  },
+  {
+    "file": "python/py_requests_no_verify.py",
+    "expected_rules": [
+      "megasast/py-requests-no-verify"
+    ]
+  },
+  {
+    "file": "python/py_ssl_unverified_context.py",
+    "expected_rules": [
+      "megasast/py-ssl-unverified-context"
+    ]
+  },
+  {
+    "file": "python/py_hashlib_md5.py",
+    "expected_rules": [
+      "megasast/py-hashlib-md5"
+    ]
+  },
+  {
+    "file": "python/py_hashlib_sha1.py",
+    "expected_rules": [
+      "megasast/py-hashlib-sha1"
+    ]
+  },
+  {
+    "file": "python/py_mktemp.py",
+    "expected_rules": [
+      "megasast/py-mktemp"
+    ]
+  },
+  {
+    "file": "python/py_os_mktemp.py",
+    "expected_rules": [
+      "megasast/py-os-mktemp"
+    ]
+  },
+  {
+    "file": "python/py_chmod_777.py",
+    "expected_rules": [
+      "megasast/py-chmod-777"
+    ]
+  },
+  {
+    "file": "python/py_plaintext_protocol.py",
+    "expected_rules": [
+      "megasast/py-plaintext-protocol"
+    ]
+  },
+  {
+    "file": "python/py_simple_http_server.py",
+    "expected_rules": [
+      "megasast/py-simple-http-server"
+    ]
+  },
+  {
+    "file": "python/py_jinja2_autoescape.py",
+    "expected_rules": [
+      "megasast/py-jinja2-autoescape"
+    ]
+  },
+  {
+    "file": "python/py_django_mark_safe.py",
+    "expected_rules": [
+      "megasast/py-django-mark-safe"
+    ]
+  },
+  {
+    "file": "python/py_sql_fstring.py",
+    "expected_rules": [
+      "megasast/py-sql-fstring"
+    ]
+  },
+  {
+    "file": "python/py_flask_debug.py",
+    "expected_rules": [
+      "megasast/py-flask-debug"
+    ]
+  },
+  {
+    "file": "javascript/js_eval.js",
+    "expected_rules": [
+      "megasast/js-eval"
+    ]
+  },
+  {
+    "file": "javascript/js_new_function.js",
+    "expected_rules": [
+      "megasast/js-new-function"
+    ]
+  },
+  {
+    "file": "javascript/js_innerhtml.js",
+    "expected_rules": [
+      "megasast/js-innerhtml"
+    ]
+  },
+  {
+    "file": "javascript/js_outerhtml.js",
+    "expected_rules": [
+      "megasast/js-outerhtml"
+    ]
+  },
+  {
+    "file": "javascript/js_insert_adjacent_html.js",
+    "expected_rules": [
+      "megasast/js-insert-adjacent-html"
+    ]
+  },
+  {
+    "file": "javascript/js_child_process_exec.js",
+    "expected_rules": [
+      "megasast/js-child-process-exec"
+    ]
+  },
+  {
+    "file": "javascript/js_child_process_exec_sync.js",
+    "expected_rules": [
+      "megasast/js-child-process-exec-sync"
+    ]
+  },
+  {
+    "file": "javascript/js_document_write.js",
+    "expected_rules": [
+      "megasast/js-document-write"
+    ]
+  },
+  {
+    "file": "javascript/js_vm_runincontext.js",
+    "expected_rules": [
+      "megasast/js-vm-runincontext"
+    ]
+  },
+  {
+    "file": "javascript/js_spawn_shell.js",
+    "expected_rules": [
+      "megasast/js-spawn-shell"
+    ]
+  },
+  {
+    "file": "javascript/js_reject_unauthorized.js",
+    "expected_rules": [
+      "megasast/js-reject-unauthorized"
+    ]
+  },
+  {
+    "file": "javascript/js_localstorage_secret.js",
+    "expected_rules": [
+      "megasast/js-localstorage-secret"
+    ]
+  },
+  {
+    "file": "javascript/js_crypto_weak_hash.js",
+    "expected_rules": [
+      "megasast/js-crypto-weak-hash"
+    ]
+  },
+  {
+    "file": "javascript/js_settimeout_string.js",
+    "expected_rules": [
+      "megasast/js-settimeout-string"
+    ]
+  },
+  {
+    "file": "java/JavaRuntimeExec.java",
+    "expected_rules": [
+      "megasast/java-runtime-exec"
+    ]
+  },
+  {
+    "file": "java/JavaProcessBuilder.java",
+    "expected_rules": [
+      "megasast/java-processbuilder"
+    ]
+  },
+  {
+    "file": "java/JavaReadObject.java",
+    "expected_rules": [
+      "megasast/java-readobject"
+    ]
+  },
+  {
+    "file": "java/JavaScriptEngineEval.java",
+    "expected_rules": [
+      "megasast/java-scriptengine-eval"
+    ]
+  },
+  {
+    "file": "java/JavaCipherWeak.java",
+    "expected_rules": [
+      "megasast/java-cipher-weak"
+    ]
+  },
+  {
+    "file": "java/JavaSignatureWeak.java",
+    "expected_rules": [
+      "megasast/java-signature-weak"
+    ]
+  },
+  {
+    "file": "java/JavaSqlConcat.java",
+    "expected_rules": [
+      "megasast/java-sql-concat"
+    ]
+  },
+  {
+    "file": "java/JavaXxe.java",
+    "expected_rules": [
+      "megasast/java-xxe"
+    ]
+  },
+  {
+    "file": "java/JavaJndiLookup.java",
+    "expected_rules": [
+      "megasast/java-jndi-lookup"
+    ]
+  },
+  {
+    "file": "java/JavaMessageDigestMd5.java",
+    "expected_rules": [
+      "megasast/java-message-digest-md5"
+    ]
+  },
+  {
+    "file": "java/JavaMessageDigestSha1.java",
+    "expected_rules": [
+      "megasast/java-message-digest-sha1"
+    ]
+  },
+  {
+    "file": "java/JavaSslProtocol.java",
+    "expected_rules": [
+      "megasast/java-ssl-protocol"
+    ]
+  },
+  {
+    "file": "c/c_system.c",
+    "expected_rules": [
+      "megasast/c-system"
+    ]
+  },
+  {
+    "file": "c/c_popen.c",
+    "expected_rules": [
+      "megasast/c-popen"
+    ]
+  },
+  {
+    "file": "c/c_strcpy.c",
+    "expected_rules": [
+      "megasast/c-strcpy"
+    ]
+  },
+  {
+    "file": "c/c_gets.c",
+    "expected_rules": [
+      "megasast/c-gets"
+    ]
+  },
+  {
+    "file": "c/c_sprintf.c",
+    "expected_rules": [
+      "megasast/c-sprintf"
+    ]
+  },
+  {
+    "file": "c/c_strcat.c",
+    "expected_rules": [
+      "megasast/c-strcat"
+    ]
+  },
+  {
+    "file": "c/c_scanf_s.c",
+    "expected_rules": [
+      "megasast/c-scanf-s"
+    ]
+  },
+  {
+    "file": "c/c_memcpy.c",
+    "expected_rules": [
+      "megasast/c-memcpy"
+    ]
+  },
+  {
+    "file": "c/c_openssl_weak_hash.c",
+    "expected_rules": [
+      "megasast/c-openssl-weak-hash"
+    ]
+  },
+  {
+    "file": "c/c_weak_cipher.c",
+    "expected_rules": [
+      "megasast/c-weak-cipher"
+    ]
+  },
+  {
+    "file": "c/c_mktemp.c",
+    "expected_rules": [
+      "megasast/c-mktemp"
+    ]
+  },
+  {
+    "file": "c/c_setuid.c",
+    "expected_rules": [
+      "megasast/c-setuid"
+    ]
+  },
+  {
+    "file": "c/c_chmod_777.c",
+    "expected_rules": [
+      "megasast/c-chmod-777"
+    ]
+  },
+  {
+    "file": "c/c_getwd.c",
+    "expected_rules": [
+      "megasast/c-getwd"
+    ]
+  },
+  {
+    "file": "c/c_strtok.c",
+    "expected_rules": [
+      "megasast/c-strtok"
+    ]
+  },
+  {
+    "file": "c/c_atoi.c",
+    "expected_rules": [
+      "megasast/c-atoi"
+    ]
+  },
+  {
+    "file": "go/go_exec_cmd.go",
+    "expected_rules": [
+      "megasast/go-exec-cmd"
+    ]
+  },
+  {
+    "file": "go/go_exec_shell.go",
+    "expected_rules": [
+      "megasast/go-exec-cmd",
+      "megasast/go-exec-shell"
+    ]
+  },
+  {
+    "file": "go/go_insecure_skip_verify.go",
+    "expected_rules": [
+      "megasast/go-insecure-skip-verify"
+    ]
+  },
+  {
+    "file": "go/go_gob_decode.go",
+    "expected_rules": [
+      "megasast/go-gob-decode"
+    ]
+  },
+  {
+    "file": "go/go_sql_sprintf.go",
+    "expected_rules": [
+      "megasast/go-sql-sprintf"
+    ]
+  },
+  {
+    "file": "go/go_crypto_md5.go",
+    "expected_rules": [
+      "megasast/go-crypto-md5"
+    ]
+  },
+  {
+    "file": "go/go_crypto_sha1.go",
+    "expected_rules": [
+      "megasast/go-crypto-sha1"
+    ]
+  },
+  {
+    "file": "go/go_weak_cipher_import.go",
+    "expected_rules": [
+      "megasast/go-weak-cipher-import"
+    ]
+  },
+  {
+    "file": "go/go_unsafe_import.go",
+    "expected_rules": [
+      "megasast/go-unsafe-import"
+    ]
+  },
+  {
+    "file": "php/php_eval.php",
+    "expected_rules": [
+      "megasast/php-eval"
+    ]
+  },
+  {
+    "file": "php/php_exec.php",
+    "expected_rules": [
+      "megasast/php-exec"
+    ]
+  },
+  {
+    "file": "php/php_system.php",
+    "expected_rules": [
+      "megasast/php-system"
+    ]
+  },
+  {
+    "file": "php/php_passthru.php",
+    "expected_rules": [
+      "megasast/php-passthru"
+    ]
+  },
+  {
+    "file": "php/php_proc_open.php",
+    "expected_rules": [
+      "megasast/php-proc-open"
+    ]
+  },
+  {
+    "file": "php/php_popen.php",
+    "expected_rules": [
+      "megasast/php-popen"
+    ]
+  },
+  {
+    "file": "php/php_shell_exec.php",
+    "expected_rules": [
+      "megasast/php-shell-exec"
+    ]
+  },
+  {
+    "file": "php/php_assert.php",
+    "expected_rules": [
+      "megasast/php-assert"
+    ]
+  },
+  {
+    "file": "php/php_create_function.php",
+    "expected_rules": [
+      "megasast/php-create-function"
+    ]
+  },
+  {
+    "file": "php/php_preg_replace_e.php",
+    "expected_rules": [
+      "megasast/php-preg-replace-e"
+    ]
+  },
+  {
+    "file": "php/php_include_variable.php",
+    "expected_rules": [
+      "megasast/php-include-variable"
+    ]
+  },
+  {
+    "file": "php/php_request_superglobal.php",
+    "expected_rules": [
+      "megasast/php-request-superglobal"
+    ]
+  },
+  {
+    "file": "php/php_unserialize.php",
+    "expected_rules": [
+      "megasast/php-unserialize"
+    ]
+  },
+  {
+    "file": "php/php_curl_no_verify.php",
+    "expected_rules": [
+      "megasast/php-curl-no-verify"
+    ]
+  },
+  {
+    "file": "php/php_sql_concat.php",
+    "expected_rules": [
+      "megasast/php-sql-concat"
+    ]
+  },
+  {
+    "file": "php/php_mcrypt.php",
+    "expected_rules": [
+      "megasast/php-mcrypt"
+    ]
+  },
+  {
+    "file": "php/php_md5.php",
+    "expected_rules": [
+      "megasast/php-md5"
+    ]
+  },
+  {
+    "file": "php/php_sha1.php",
+    "expected_rules": [
+      "megasast/php-sha1"
+    ]
+  },
+  {
+    "file": "php/php_extract.php",
+    "expected_rules": [
+      "megasast/php-extract"
+    ]
+  },
+  {
+    "file": "rust/rust_command.rs",
+    "expected_rules": [
+      "megasast/rust-command"
+    ]
+  },
+  {
+    "file": "rust/rust_danger_accept_invalid.rs",
+    "expected_rules": [
+      "megasast/rust-danger-accept-invalid"
+    ]
+  },
+  {
+    "file": "rust/rust_unsafe.rs",
+    "expected_rules": [
+      "megasast/rust-unsafe"
+    ]
+  },
+  {
+    "file": "rust/rust_transmute.rs",
+    "expected_rules": [
+      "megasast/rust-transmute"
+    ]
+  },
+  {
+    "file": "rust/rust_from_utf8_unchecked.rs",
+    "expected_rules": [
+      "megasast/rust-from-utf8-unchecked"
+    ]
+  },
+  {
+    "file": "rust/rust_mem_zeroed.rs",
+    "expected_rules": [
+      "megasast/rust-mem-zeroed"
+    ]
+  },
+  {
+    "file": "rust/rust_slice_raw_parts.rs",
+    "expected_rules": [
+      "megasast/rust-slice-raw-parts"
+    ]
+  },
+  {
+    "file": "rust/rust_weak_hash_import.rs",
+    "expected_rules": [
+      "megasast/rust-weak-hash-import"
+    ]
+  },
+  {
+    "file": "secrets/aws_access_key.py",
+    "expected_rules": [
+      "megasast/aws-access-key"
+    ]
+  },
+  {
+    "file": "secrets/hardcoded_secret.py",
+    "expected_rules": [
+      "megasast/hardcoded-secret"
+    ]
+  },
+  {
+    "file": "secrets/insecure_rand.py",
+    "expected_rules": [
+      "megasast/insecure-rand"
+    ]
+  }
+]

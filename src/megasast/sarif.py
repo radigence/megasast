@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 from megasast.findings import Finding
 from megasast.rules.registry import RULES
@@ -9,6 +10,12 @@ def _rel_uri(path: str, root: Path) -> str:
     except ValueError:
         rel = p
     return str(rel).replace("\\", "/")
+
+def _fingerprint(rule_id: str, uri: str, snippet: str) -> str:
+    # Stable across line-number shifts: keyed on rule, path, normalized snippet.
+    # SHA-256 (not SHA-1) since SHA-1 is collision-broken.
+    normalized = " ".join((snippet or "").split())
+    return hashlib.sha256(f"{rule_id}|{uri}|{normalized}".encode("utf-8")).hexdigest()
 
 def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "0.1.0"):
     rules_map = {}
@@ -32,6 +39,14 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
                 default_level = "note"
             else:
                 default_level = "warning"
+            rule_properties = {"tags": tags}
+            if rule.cwe:
+                rule_properties["cwe"] = rule.cwe
+            if rule.owasp:
+                rule_properties["owasp"] = rule.owasp
+            rule_properties["description"] = description
+            rule_properties["remediation"] = rule.remediation
+            rule_properties["severity"] = severity
             rules_map[rule_id] = {
                 "id": rule_id,
                 "name": name,
@@ -39,12 +54,7 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
                 "fullDescription": {"text": description},
                 "help": {"text": rule.remediation or description},
                 "defaultConfiguration": {"level": default_level},
-                "properties": {
-                    "tags": tags,
-                    "description": description,
-                    "remediation": rule.remediation,
-                    "severity": severity,
-                },
+                "properties": rule_properties,
                 "helpUri": f"https://github.com/matt/megasast#rule-{rule_id}",
             }
     for f in findings:
@@ -63,6 +73,7 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
             level = "note"
         else:
             level = "warning"
+        uri = _rel_uri(f.path, root)
         results.append({
             "ruleId": rule_id,
             "level": level,
@@ -80,10 +91,11 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
                 "remediation": remediation,
                 "tags": rule.tags if rule else [],
                 "severity": f.severity,
+                "fingerprints": {"megasast": _fingerprint(rule_id, uri, f.snippet)},
             },
             "locations": [{
                 "physicalLocation": {
-                    "artifactLocation": {"uri": _rel_uri(f.path, root)},
+                    "artifactLocation": {"uri": uri},
                     "region": {
                         "startLine": f.start_line,
                         "startColumn": f.start_column,
@@ -92,7 +104,7 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
                         "snippet": {"text": f.snippet}
                     }
                 }
-            }]
+            }],
         })
 
     sarif = {

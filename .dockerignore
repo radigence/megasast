@@ -14,3 +14,9 @@ build
 *.md
 README.md
 *.sarif
+# Testbed and test tooling must never ship in the image:
+# the image scans untrusted targets, and the testbed is
+# intentionally vulnerable by design.
+testbed/
+tests/
+scripts/

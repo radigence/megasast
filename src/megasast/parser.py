@@ -3,6 +3,8 @@ from tree_sitter_language_pack import get_language
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from megasast.config import MAX_FILE_SIZE
+
 LANG_MAP = {
     ".py": ("python",),
     ".js": ("javascript",),
@@ -58,6 +60,10 @@ class TreeSitterParser:
             return None
         if not data:
             return None
+        # Enforce the DoS size bound at the parse boundary itself (defense in
+        # depth), not only in discovery.
+        if len(data) > MAX_FILE_SIZE:
+            return None
         decoded, _ = _decode_bytes(data)
         if decoded is None:
             return None
@@ -86,23 +92,29 @@ class TreeSitterParser:
         q_str = queries.get(lang_name)
         if q_str is None:
             return matches
-        try:
-            query = Query(lang, q_str)
-        except Exception as e:
-            import sys
-            print(f"Warning: query compile error for {lang_name}: {q_str[:80]}... {e}", file=sys.stderr)
-            return matches
-
-        cursor = QueryCursor(query)
-        for _pattern_idx, captures_dict in cursor.matches(tree.root_node):
-            # Rules should capture the expression to report as @match.  Retain a
-            # sensible fallback for third-party rules that have exactly one capture.
-            nodes = captures_dict.get("match")
-            capture_name = "match"
-            if nodes is None and len(captures_dict) == 1:
-                capture_name, nodes = next(iter(captures_dict.items()))
-            if nodes is None:
+        # A rule query may contain several patterns separated by ';'.
+        # The tree-sitter binding only evaluates the first pattern of a
+        # combined query, so compile and run each pattern separately.
+        for pattern in (part.strip() for part in q_str.split(";")):
+            if not pattern:
                 continue
-            for node in nodes:
-                matches.append({"node": node, "capture": capture_name})
+            try:
+                query = Query(lang, pattern)
+            except Exception as e:
+                import sys
+                print(f"Warning: query compile error for {lang_name}: {pattern[:80]}... {e}", file=sys.stderr)
+                continue
+
+            cursor = QueryCursor(query)
+            for _pattern_idx, captures_dict in cursor.matches(tree.root_node):
+                # Rules should capture the expression to report as @match.  Retain a
+                # sensible fallback for third-party rules that have exactly one capture.
+                nodes = captures_dict.get("match")
+                capture_name = "match"
+                if nodes is None and len(captures_dict) == 1:
+                    capture_name, nodes = next(iter(captures_dict.items()))
+                if nodes is None:
+                    continue
+                for node in nodes:
+                    matches.append({"node": node, "capture": capture_name})
         return matches
