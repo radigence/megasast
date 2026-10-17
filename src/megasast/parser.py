@@ -20,6 +20,8 @@ LANG_MAP = {
     ".cxx": ("cpp",),
     ".java": ("java",),
     ".php": ("php",),
+    ".html": ("html",),
+    ".htm": ("html",),
 }
 
 def _decode_bytes(data: bytes) -> Tuple[bytes, str]:

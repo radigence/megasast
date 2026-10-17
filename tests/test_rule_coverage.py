@@ -114,6 +114,12 @@ from megasast.parser import TreeSitterParser
         ("sample.rs", "fn f(p: *mut u8) { Vec::from_raw_parts(p, 1, 1); }\n", "megasast/rust-slice-raw-parts"),
         ("sample.rs", "use md5::Digest;\nfn f() {}\n", "megasast/rust-weak-hash-import"),
         ("sample.rs", "fn f() { let password = \"secret123value\"; }\n", "megasast/hardcoded-secret"),
+        ("sample.html", "<a href=\"javascript:alert(1)\">click</a>\n", "megasast/html-js-url"),
+        ("sample.html", "<button onclick=\"doThing()\">go</button>\n", "megasast/html-event-handler"),
+        ("sample.html", "<a href=\"/docs\" target=\"_blank\">docs</a>\n", "megasast/html-target-blank"),
+        ("sample.html", "<script src=\"http://evil.example/app.js\"></script>\n", "megasast/html-insecure-script-src"),
+        ("sample.html", "<iframe src=\"http://evil.example/frame\"></iframe>\n", "megasast/html-insecure-iframe-src"),
+        ("sample.html", "<meta http-equiv=\"refresh\" content=\"0;url=javascript:alert(1)\">\n", "megasast/html-meta-refresh-js"),
     ],
 )
 def test_new_rules_match_representative_code(tmp_path, filename, source, expected_rule):
@@ -186,6 +192,12 @@ def test_child_process_exec_sync_rule_does_not_match_other_objects(tmp_path):
         ("sample.php", "<?php $k = \"hello world\"; ?>\n", "megasast/aws-access-key"),
         ("sample.php", "<?php $k = 'hello world'; ?>\n", "megasast/aws-access-key"),
         ("sample.rs", "fn f() { let k = \"hello world\"; }\n", "megasast/aws-access-key"),
+        ("sample.html", "<a href=\"/login\">x</a>\n", "megasast/html-js-url"),
+        ("sample.html", "<div class=\"onclick-banner\">x</div>\n", "megasast/html-event-handler"),
+        ("sample.html", "<a href=\"/x\" target=\"_self\">y</a>\n", "megasast/html-target-blank"),
+        ("sample.html", "<script src=\"https://cdn.example.com/x.js\"></script>\n", "megasast/html-insecure-script-src"),
+        ("sample.html", "<iframe src=\"https://ok.example/\" sandbox=\"allow-scripts\"></iframe>\n", "megasast/html-insecure-iframe-src"),
+        ("sample.html", "<meta http-equiv=\"refresh\" content=\"30;url=/home\">\n", "megasast/html-meta-refresh-js"),
     ],
 )
 def test_new_rules_do_not_match_safe_code(tmp_path, filename, source, rule_id):

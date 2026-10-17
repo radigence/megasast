@@ -601,6 +601,42 @@
     ]
   },
   {
+    "file": "html/html_js_url.html",
+    "expected_rules": [
+      "megasast/html-js-url"
+    ]
+  },
+  {
+    "file": "html/html_event_handler.html",
+    "expected_rules": [
+      "megasast/html-event-handler"
+    ]
+  },
+  {
+    "file": "html/html_target_blank.html",
+    "expected_rules": [
+      "megasast/html-target-blank"
+    ]
+  },
+  {
+    "file": "html/html_insecure_script_src.html",
+    "expected_rules": [
+      "megasast/html-insecure-script-src"
+    ]
+  },
+  {
+    "file": "html/html_insecure_iframe_src.html",
+    "expected_rules": [
+      "megasast/html-insecure-iframe-src"
+    ]
+  },
+  {
+    "file": "html/html_meta_refresh_js.html",
+    "expected_rules": [
+      "megasast/html-meta-refresh-js"
+    ]
+  },
+  {
     "file": "secrets/aws_access_key.py",
     "expected_rules": [
       "megasast/aws-access-key"
