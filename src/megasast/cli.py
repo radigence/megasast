@@ -8,8 +8,9 @@ from pathlib import Path
 from megasast.discovery import discover
 from megasast.engine import scan_file
 from megasast.parser import TreeSitterParser
-from megasast.sarif import findings_to_sarif
+from megasast.sarif import findings_to_sarif, _fingerprint, _rel_uri
 from megasast.rules.registry import RULES
+from megasast.version import __version__
 from megasast.console import print_banner
 
 _worker_parser = None
@@ -45,6 +46,47 @@ def _flatten_worker_results(results):
     return [finding for file_findings in results for finding in file_findings]
 
 
+def _baseline_keys_from_sarif(baseline_data: dict):
+    """Collect (rule_id, uri, startLine, startColumn) keys AND SARIF fingerprints."""
+    keys = set()
+    fingerprints = set()
+    for run in baseline_data.get("runs", []):
+        for res in run.get("results", []):
+            rule_id = res.get("ruleId", "")
+            loc = res.get("locations", [{}])[0].get("physicalLocation", {})
+            uri = loc.get("artifactLocation", {}).get("uri", "")
+            region = loc.get("region", {})
+            keys.add((rule_id, uri, region.get("startLine"), region.get("startColumn")))
+            fp = res.get("properties", {}).get("fingerprints", {}).get("megasast")
+            if fp:
+                fingerprints.add(fp)
+    return keys, fingerprints
+
+
+def _apply_baseline(findings, baseline_data: dict, root: Path):
+    """Return only findings that are new versus the baseline SARIF report.
+
+    A finding counts as already known when EITHER matching signal hits:
+    the exact (ruleId, uri, line, column) position from the baseline, or
+    the shift-stable SARIF fingerprint (rule + path + normalized snippet).
+    The fingerprint keeps the diff honest when code moved lines since the
+    baseline was captured; the positional key covers cases where the
+    baseline was produced without fingerprints.
+    """
+    keys, fingerprints = _baseline_keys_from_sarif(baseline_data)
+    new_findings = []
+    for f in findings:
+        # Same URI normalization as the SARIF emitter, so baseline entries
+        # and current findings compare like-for-like.
+        uri = _rel_uri(f.path, root)
+        positional = (f.rule_id, uri, f.start_line, f.start_column)
+        fingerprint = _fingerprint(f.rule_id, uri, f.snippet)
+        if positional in keys or fingerprint in fingerprints:
+            continue
+        new_findings.append(f)
+    return new_findings
+
+
 def _finding_to_json(finding, rule):
     """Serialize a finding with the rule context needed by downstream tools."""
     description = rule.description if rule else ""
@@ -69,7 +111,7 @@ def _finding_to_json(finding, rule):
 
 def main():
     parser = argparse.ArgumentParser(prog="megasast", description="Simple SAST scanner with SARIF output")
-    parser.add_argument("--version", action="version", version="megasast 0.1.0")
+    parser.add_argument("--version", action="version", version=f"megasast {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
     
     scan_parser = subparsers.add_parser("scan", help="Scan a path for issues")
@@ -84,7 +126,7 @@ def main():
     scan_parser.add_argument("--severity", nargs="+", choices=["high", "medium", "low"], default=None, help="Severity levels to report")
     scan_parser.add_argument("--baseline", default=None, help="Baseline SARIF file to diff against")
     
-    rules_parser = subparsers.add_parser("rules", help="List available rules")
+    subparsers.add_parser("rules", help="List available rules")
     
     args = parser.parse_args()
     print_banner()
@@ -143,29 +185,21 @@ def main():
     if args.baseline:
         try:
             baseline_data = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
-            baseline_results = set()
-            for run in baseline_data.get("runs", []):
-                for res in run.get("results", []):
-                    rule_id = res.get("ruleId", "")
-                    loc = res.get("locations", [{}])[0].get("physicalLocation", {})
-                    uri = loc.get("artifactLocation", {}).get("uri", "")
-                    region = loc.get("region", {})
-                    key = (rule_id, uri, region.get("startLine"), region.get("startColumn"))
-                    baseline_results.add(key)
-            # Filter findings to only new ones
-            new_findings = []
-            for f in findings:
-                uri = str(Path(f.path).relative_to(root)).replace("\\", "/")
-                key = (f.rule_id, uri, f.start_line, f.start_column)
-                if key not in baseline_results:
-                    new_findings.append(f)
-            findings = new_findings
+            findings = _apply_baseline(findings, baseline_data, root)
             print(f"Baseline comparison: {len(findings)} new findings")
         except Exception as e:
             print(f"Warning: could not load baseline {args.baseline}: {e}", file=sys.stderr)
 
+    # Mirror the active rule selection in the SARIF report so consumers
+    # don't see disabled rules as result-less.
+    active_rule_ids = {
+        r.id for r in RULES
+        if (allowed_rules is None or r.id in allowed_rules)
+        and (excluded_rules is None or r.id not in excluded_rules)
+        and (allowed_severities is None or str(r.severity).lower() in allowed_severities)
+    }
     if args.format == "sarif":
-        sarif = findings_to_sarif(findings, root)
+        sarif = findings_to_sarif(findings, root, active_rule_ids)
         out = args.output or "results.sarif"
         Path(out).write_text(json.dumps(sarif, indent=2), encoding="utf-8")
         print(f"Wrote {len(findings)} findings to {out}")

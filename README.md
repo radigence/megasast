@@ -13,6 +13,15 @@
 Simple SAST tool for large monorepos. Scans files with tree-sitter, runs AST queries, emits valid SARIF 2.1.0.
 
 ## Install
+
+From PyPI (v0.1.4+):
+
+```bash
+pipx install megasast
+```
+
+From source (contributor setup):
+
 ```bash
 pip install -e .[dev]
 ```
@@ -52,11 +61,14 @@ docker run --rm `
   megasast scan /scan-target -o /output/results.sarif --format sarif
 ```
 
-The included Compose configuration scans `./scan-target` and writes `./output/report.sarif`:
+The image's default command scans `/scan-target` and writes `/output/results.sarif`, so a bare run with the two mounts is enough:
 
 ```bash
-mkdir -p scan-target output
-docker compose up --build
+mkdir -p output
+docker run --rm \
+  -v "$(pwd):/scan-target:ro" \
+  -v "$(pwd)/output:/output" \
+  megasast
 ```
 
 The scan target is deliberately mounted read-only. Mount a separate writable output directory whenever you use `--output`.
@@ -73,6 +85,63 @@ Flags:
 - `--version` show version
 
 JSON and SARIF results include each rule's description, tags, severity, and remediation guidance. SARIF also places the guidance in the rule `help` field and the result properties for downstream security platforms.
+
+## Configuration
+
+Project-level configuration lives in `megasast.toml` (or `.megasast.toml`).
+The scanner uses the closest configuration file to the scan root, walking
+upwards (so scans from subdirectories pick up the repo config):
+
+```toml
+[megasast.rules]
+only = ["megasast/py-sql-fstring", "megasast/py-subprocess-shell"]  # optional allow-list
+exclude = ["megasast/html-target-blank"]                            # optional deny-list
+severity = ["high", "medium"]                                       # optional severity allow-list
+```
+
+Precedence: explicit CLI flags (`--rule`, `--no-rule`, `--severity`) always
+override `[megasast.rules]` values, which otherwise apply to the scan.
+
+Useful scans:
+
+```bash
+# baseline workflow: capture once, then only surface new findings
+megasast scan . -o baseline.sarif
+megasast scan . --baseline baseline.sarif
+
+# CI gate
+megasast scan . --fail-on high
+
+# point fixes at one language
+megasast scan . --format text --rule megasast/py-subprocess-shell
+```
+
+`--baseline` diffing matches on both the exact (rule, path, line, column)
+position and the shift-stable SARIF fingerprint, so findings survive line
+moves between the baseline capture and the re-scan.
+
+## Ignoring findings
+
+Suppress a finding with a comment carrying the exact rule id. Both work in
+any language's comment style (`#`, `//`, `<!-- -->` — comments are
+recognized structurally, not by markup characters):
+
+```python
+os.system(cmd)  # megasast:ignore megasast/py-os-system
+```
+
+```python
+# megasast:ignore megasast/py-os-system
+os.system(cmd)
+```
+
+A suppression applies only to the finding's own line or the line
+immediately above it — an ignored rule 5 lines above does not silence an
+unrelated finding below it. A comment on the preceding line must be the
+only content of that line, so a trailing comment on one statement cannot
+silence the next statement. Suppression comments are found as real comment
+nodes in the parse tree, so a string literal that happens to contain the
+token (a printed banner, a config value) can never act as a suppression.
 
 ## Rules
 
@@ -186,9 +255,21 @@ Full per-rule reference with descriptions and remediation guidance: [RULES.md](R
 | `megasast/html-insecure-script-src` | MEDIUM | html | HTML script loaded over HTTP |
 | `megasast/html-insecure-iframe-src` | MEDIUM | html | HTML iframe loaded over HTTP |
 | `megasast/html-meta-refresh-js` | MEDIUM | html | HTML meta refresh to javascript: URL |
-| `megasast/aws-access-key` | HIGH | python, javascript, typescript, java, c, cpp, go, php, rust | Hardcoded AWS access key ID |
-| `megasast/hardcoded-secret` | MEDIUM | python, javascript, typescript, java, c, cpp, go, php, rust | Hardcoded secret in source |
 | `megasast/insecure-rand` | MEDIUM | python, javascript, typescript, java, c, cpp, go, php | Predictable random number generator |
+| `megasast/py-yaml-unsafe-load` | HIGH | python | Python yaml.unsafe_load() usage |
+| `megasast/yaml-unpinned-action` | MEDIUM | yaml | GitHub Action reference not pinned to a commit SHA |
+| `megasast/yaml-pr-target-trigger` | MEDIUM | yaml | GitHub workflow trigger pull_request_target |
+| `megasast/yaml-k8s-privileged` | HIGH | yaml | Privileged Kubernetes container |
+| `megasast/docker-curl-pipe-sh` | HIGH | dockerfile | Dockerfile RUN curl/wget piped into a shell |
+| `megasast/docker-unpinned-image` | MEDIUM | dockerfile | Dockerfile FROM without a digest pin |
+| `megasast/docker-add-url` | MEDIUM | dockerfile | Dockerfile ADD with a remote URL |
+| `megasast/sh-eval` | HIGH | bash | Shell eval command usage |
+| `megasast/sh-curl-pipe-sh` | HIGH | bash | Shell curl/wget piped into a shell |
+| `megasast/sh-source-variable` | MEDIUM | bash | Shell source of a variable path |
+| `megasast/ru-eval` | HIGH | ruby | Ruby eval() usage |
+| `megasast/ru-marshal-load` | HIGH | ruby | Ruby Marshal.load usage |
+| `megasast/csharp-process-start` | MEDIUM | csharp | C# Process.Start usage |
+| `megasast/csharp-shell-execute` | HIGH | csharp | C# ProcessStartInfo UseShellExecute=true |
 
 ## Adding rules
 Edit `src/megasast/rules/*.py` with `Rule(id, name, description, severity, languages, queries, message)`.

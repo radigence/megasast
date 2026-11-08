@@ -33,7 +33,7 @@ Every new rule must:
   ```python
   from tree_sitter import Parser
   from tree_sitter_language_pack import get_language
-  lang = get_language("php")  # python, javascript, typescript, java, c, go, rust
+  lang = get_language("php")  # python, tsx, yaml, dockerfile, bash, ruby, csharp, ...
   tree = Parser(lang).parse(b'<?php curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); ?>')
   print(tree.root_node.sexp())
   ```
@@ -64,6 +64,56 @@ must instead predicate on a non-root (inner) capture:
 `tests/test_query_guard.py::test_no_builtin_rule_has_ineffective_predicates`
 fails the suite if any registered rule has one. The negative test in (2)
 is still required: it is what catches over-broad queries end to end.
+
+## Grammar drift is a real failure, not noise
+
+The `tree-sitter` / `tree-sitter-language-pack` dependencies carry no upper
+bound, and the pack regenerates grammars continuously. When a grammar
+release changes node names, rule queries stop matching and the testbed
+tests fail (each testbed file must fire exactly its documented rules).
+That failure is the intentional drift gate: fix it by re-dumping the tree
+and updating the affected queries — do not "fix" it by deleting testbed
+entries or dropping expected rules from the manifest.
+
+## Third-party rules (plugins)
+
+Rules don't have to live in this repository. A package can expose its own
+rules via the `megasast.rules` entry-point group; megasast loads them at
+startup (in addition to the built-ins) and surfaces them in the `rules`
+subcommand and the SARIF rule list the same way.
+
+Create a package with a module exposing a module-level `RULES` list:
+
+```python
+# src/mypkg/rules.py
+from megasast.rules.base import Rule
+
+MY_RULE = Rule(
+    id="mypkg/my-rule",
+    name="My custom rule",
+    description="Description of the pattern.",
+    severity="MEDIUM",
+    languages=["python"],
+    queries={
+        "python": '(call function: (identifier) @f (#eq? @f "my_invoke")) @match',
+    },
+    message="My rule fired.",
+    remediation="How to fix it.",
+    tags=["security"],
+)
+
+RULES = [MY_RULE]
+```
+
+```toml
+# pyproject.toml of the plugin package
+[project.entry-points."megasast.rules"]
+mypkg = "mypkg.rules"
+```
+
+Install both packages, run `megasast rules`, and your rule appears. Query
+authoring follows the same conventions as built-in rules — including the
+single-capture predicate pitfall above.
 
 ## Out of scope for AST rules
 

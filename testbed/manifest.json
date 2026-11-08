@@ -132,6 +132,90 @@
     ]
   },
   {
+    "file": "python/py_yaml_unsafe_load.py",
+    "expected_rules": [
+      "megasast/py-yaml-unsafe-load"
+    ]
+  },
+  {
+    "file": "yaml/yaml_unpinned_action.yml",
+    "expected_rules": [
+      "megasast/yaml-unpinned-action"
+    ]
+  },
+  {
+    "file": "yaml/yaml_pr_target_trigger.yml",
+    "expected_rules": [
+      "megasast/yaml-pr-target-trigger"
+    ]
+  },
+  {
+    "file": "yaml/yaml_k8s_privileged.yml",
+    "expected_rules": [
+      "megasast/yaml-k8s-privileged"
+    ]
+  },
+  {
+    "file": "docker/docker_curl_pipe_sh.dockerfile",
+    "expected_rules": [
+      "megasast/docker-curl-pipe-sh"
+    ]
+  },
+  {
+    "file": "docker/docker_unpinned_image.dockerfile",
+    "expected_rules": [
+      "megasast/docker-unpinned-image"
+    ]
+  },
+  {
+    "file": "docker/docker_add_url.dockerfile",
+    "expected_rules": [
+      "megasast/docker-add-url"
+    ]
+  },
+  {
+    "file": "shell/sh_eval.sh",
+    "expected_rules": [
+      "megasast/sh-eval"
+    ]
+  },
+  {
+    "file": "shell/sh_curl_pipe_sh.sh",
+    "expected_rules": [
+      "megasast/sh-curl-pipe-sh"
+    ]
+  },
+  {
+    "file": "shell/sh_source_variable.sh",
+    "expected_rules": [
+      "megasast/sh-source-variable"
+    ]
+  },
+  {
+    "file": "ruby/ru_eval.rb",
+    "expected_rules": [
+      "megasast/ru-eval"
+    ]
+  },
+  {
+    "file": "ruby/ru_marshal_load.rb",
+    "expected_rules": [
+      "megasast/ru-marshal-load"
+    ]
+  },
+  {
+    "file": "csharp/csharp_process_start.cs",
+    "expected_rules": [
+      "megasast/csharp-process-start"
+    ]
+  },
+  {
+    "file": "csharp/csharp_shell_execute.cs",
+    "expected_rules": [
+      "megasast/csharp-shell-execute"
+    ]
+  },
+  {
     "file": "javascript/js_eval.js",
     "expected_rules": [
       "megasast/js-eval"
@@ -637,19 +721,7 @@
     ]
   },
   {
-    "file": "secrets/aws_access_key.py",
-    "expected_rules": [
-      "megasast/aws-access-key"
-    ]
-  },
-  {
-    "file": "secrets/hardcoded_secret.py",
-    "expected_rules": [
-      "megasast/hardcoded-secret"
-    ]
-  },
-  {
-    "file": "secrets/insecure_rand.py",
+    "file": "crypto/insecure_rand.py",
     "expected_rules": [
       "megasast/insecure-rand"
     ]

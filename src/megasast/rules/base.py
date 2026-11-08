@@ -16,5 +16,9 @@ class Rule:
     owasp: str | None = None
 
     def __post_init__(self):
-        if self.severity.upper() not in {"HIGH", "MEDIUM", "LOW", "INFO", "NOTE"}:
+        # Only severities the product surface actually supports: the CLI's
+        # --severity/--fail-on choices and the SARIF error/warning/note
+        # mapping cover HIGH/MEDIUM/LOW. If INFO or NOTE severities are
+        # introduced, extend the CLI choices and the SARIF level mapping too.
+        if self.severity.upper() not in {"HIGH", "MEDIUM", "LOW"}:
             raise ValueError(f"Invalid severity {self.severity}")

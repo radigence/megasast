@@ -1,0 +1,7 @@
+# rule: megasast/yaml-pr-target-trigger
+on:
+  pull_request_target:
+    types: [opened]
+jobs:
+  b:
+    runs-on: ubuntu-latest

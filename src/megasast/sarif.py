@@ -1,7 +1,25 @@
 import hashlib
+import re
 from pathlib import Path
+
 from megasast.findings import Finding
+from megasast.version import __version__
 from megasast.rules.registry import RULES
+
+# Per-rule links point at the generated rule catalog. The anchors are the
+# GitHub heading slugs of RULES.md's `### <id> — <name>` headings, computed
+# with the same algorithm as scripts/generate_rules_md.py.
+RULES_MD_URL = "https://github.com/radigence/megasast/blob/main/RULES.md"
+
+def _gh_anchor(title: str) -> str:
+    # Match GitHub's heading slugger (and gh_anchor in
+    # scripts/generate_rules_md.py): lowercase, drop anything that is not
+    # alphanumeric/space/hyphen/underscore, spaces become hyphens.
+    return re.sub(r"[^a-z0-9 _-]", "", title.lower()).replace(" ", "-")
+
+def rule_help_uri(rule) -> str:
+    heading = f"`{rule.id}` — {rule.name}"
+    return f"{RULES_MD_URL}#{_gh_anchor(heading)}"
 
 def _rel_uri(path: str, root: Path) -> str:
     p = Path(path)
@@ -17,13 +35,23 @@ def _fingerprint(rule_id: str, uri: str, snippet: str) -> str:
     normalized = " ".join((snippet or "").split())
     return hashlib.sha256(f"{rule_id}|{uri}|{normalized}".encode("utf-8")).hexdigest()
 
-def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "0.1.0"):
+def findings_to_sarif(findings: list[Finding], root: Path, active_rule_ids: set | None = None, tool_version: str = __version__) -> dict:
+    """Build a SARIF 2.1.0 report.
+
+    ``active_rule_ids`` mirrors the scanning filters: when the scan ran with
+    ``--rule``/``--no-rule``/severity restrictions, only those rules are
+    published in the report, so downstream consumers (GitHub code scanning,
+    DefectDojo) don't show disabled rules as suspiciously result-less.
+    ``None`` means the full built-in catalog.
+    """
     rules_map = {}
     results = []
     # build lookup for rule metadata
     rule_lookup = {r.id: r for r in RULES}
     # Ensure all rules are present even with no findings
     for rule in RULES:
+        if active_rule_ids is not None and rule.id not in active_rule_ids:
+            continue
         rule_id = rule.id
         if rule_id not in rules_map:
             name = rule.name
@@ -55,7 +83,7 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
                 "help": {"text": rule.remediation or description},
                 "defaultConfiguration": {"level": default_level},
                 "properties": rule_properties,
-                "helpUri": f"https://github.com/matt/megasast#rule-{rule_id}",
+                "helpUri": rule_help_uri(rule),
             }
     for f in findings:
         rule_id = f.rule_id
@@ -114,15 +142,12 @@ def findings_to_sarif(findings: list[Finding], root: Path, tool_version: str = "
             "tool": {
                 "driver": {
                     "name": "megasast",
-                    "informationUri": "https://github.com/matt/megasast",
+                    "informationUri": "https://github.com/radigence/megasast",
                     "version": tool_version,
                     "rules": list(rules_map.values())
                 }
             },
             "results": results,
-            "originalUriBaseIds": {
-                "ROOT": {"uri": ""}
-            }
         }]
     }
     return sarif

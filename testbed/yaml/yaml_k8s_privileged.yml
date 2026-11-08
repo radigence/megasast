@@ -1,0 +1,6 @@
+# rule: megasast/yaml-k8s-privileged
+spec:
+  containers:
+    - name: c
+      image: nginx
+      privileged: true

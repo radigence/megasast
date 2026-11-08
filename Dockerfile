@@ -24,8 +24,8 @@ USER megasast
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Expose port (if needed for web interface)
-EXPOSE 8080
-
-# Command to run the CLI
-CMD ["megasast"]
+# Default scan target: mounted read-only at /scan-target, SARIF written to
+# the writable /output mount. Any arguments appended to `docker run` follow
+# this command, so `docker run megasast scan .` still works.
+# This is a CLI scanner: no ports are exposed.
+CMD ["megasast", "scan", "/scan-target", "-o", "/output/results.sarif", "--format", "sarif"]

@@ -37,7 +37,14 @@ RUST_TRANSMUTE = Rule(
     severity="MEDIUM",
     languages=["rust"],
     queries={
-        "rust": "(call_expression (scoped_identifier) @call (#match? @call \"^(std::mem::|mem::)transmute$\")) @match",
+        # Both the plain-path form (std::mem::transmute(val)) and the
+        # turbofish generic-call form (transmute::<u32, i32>(val), whose
+        # function node is a generic_function, not a plain scoped/qualified
+        # identifier) are unsafe reinterpret casts.
+        "rust": (
+            "(call_expression (scoped_identifier) @call (#match? @call \"^(std::mem::|mem::)transmute$\")) @match; "
+            "(call_expression (generic_function [(scoped_identifier) @call (identifier) @call]) (#match? @call \"(std::mem::|mem::)?transmute$\")) @match"
+        ),
     },
     message="Use of mem::transmute — undefined behavior risk.",
     tags=["security", "type-punning"],

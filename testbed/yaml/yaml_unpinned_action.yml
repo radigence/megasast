@@ -1,0 +1,4 @@
+# rule: megasast/yaml-unpinned-action
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0

@@ -5,7 +5,9 @@ def test_run_queries_evaluates_every_pattern():
     parser = TreeSitterParser()
     result = parser.parse_file(Path("tests/fixtures/test_scan.py"))
     assert result is not None
-    tree, _, lang_name = result
+    pairs, _ = result
+    assert len(pairs) == 1
+    lang_name, tree = pairs[0]
     query = {
         lang_name: (
             '(call function: (identifier) @a (#eq? @a "eval")) @match ; '
