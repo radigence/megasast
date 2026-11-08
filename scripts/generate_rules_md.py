@@ -25,6 +25,7 @@ FAMILIES = [
     ("Go", {"go"}),
     ("PHP", {"php"}),
     ("Rust", {"rust"}),
+    ("HTML", {"html"}),
 ]
 
 LANG_LABELS = {
@@ -37,6 +38,7 @@ LANG_LABELS = {
     "go": "go",
     "php": "php",
     "rust": "rust",
+    "html": "html",
 }
 
 

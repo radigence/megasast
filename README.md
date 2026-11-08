@@ -180,6 +180,12 @@ Full per-rule reference with descriptions and remediation guidance: [RULES.md](R
 | `megasast/rust-mem-zeroed` | MEDIUM | rust | Rust mem::zeroed usage |
 | `megasast/rust-slice-raw-parts` | MEDIUM | rust | Rust from_raw_parts usage |
 | `megasast/rust-weak-hash-import` | MEDIUM | rust | Rust md5/sha1 crate usage |
+| `megasast/html-js-url` | HIGH | html | HTML javascript: URL |
+| `megasast/html-event-handler` | MEDIUM | html | HTML inline event handler |
+| `megasast/html-target-blank` | LOW | html | HTML target=_blank link |
+| `megasast/html-insecure-script-src` | MEDIUM | html | HTML script loaded over HTTP |
+| `megasast/html-insecure-iframe-src` | MEDIUM | html | HTML iframe loaded over HTTP |
+| `megasast/html-meta-refresh-js` | MEDIUM | html | HTML meta refresh to javascript: URL |
 | `megasast/aws-access-key` | HIGH | python, javascript, typescript, java, c, cpp, go, php, rust | Hardcoded AWS access key ID |
 | `megasast/hardcoded-secret` | MEDIUM | python, javascript, typescript, java, c, cpp, go, php, rust | Hardcoded secret in source |
 | `megasast/insecure-rand` | MEDIUM | python, javascript, typescript, java, c, cpp, go, php | Predictable random number generator |

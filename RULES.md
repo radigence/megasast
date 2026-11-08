@@ -12,6 +12,7 @@ and remediation guidance. The summary table lives in [README.md](README.md#rules
 - [Go (9)](#go)
 - [PHP (19)](#php)
 - [Rust (8)](#rust)
+- [HTML (6)](#html)
 - [Cross-language (3)](#cross-language)
 
 ## Python
@@ -1120,6 +1121,74 @@ The md5 and sha1 crates provide broken or deprecated hashes, unsuitable for secu
 **Remediation:** Use the sha2 crate (SHA-256 or stronger), or a dedicated password hashing crate for passwords.
 
 **Finding message:** Use of the md5/sha1 crate — weak cryptographic hash.
+
+
+## HTML
+
+### `megasast/html-js-url` — HTML javascript: URL
+
+**Severity:** HIGH · **Languages:** html · **CWE:** CWE-79 · **OWASP:** A03:2021 Injection · **Tags:** security, xss
+
+A javascript: URL in href/src/action/formaction executes script when activated.
+
+**Remediation:** Use https:// URLs or relative paths. Never build javascript: URLs from untrusted input.
+
+**Finding message:** javascript: URL — script execution risk.
+
+
+### `megasast/html-event-handler` — HTML inline event handler
+
+**Severity:** MEDIUM · **Languages:** html · **CWE:** CWE-79 · **OWASP:** A03:2021 Injection · **Tags:** security, xss
+
+Inline on* event handler attributes execute script and are hard to review or sandbox with CSP.
+
+**Remediation:** Attach listeners with addEventListener in a separate script file and enforce a script-src Content Security Policy without 'unsafe-inline'.
+
+**Finding message:** Inline event handler — potential XSS.
+
+
+### `megasast/html-target-blank` — HTML target=_blank link
+
+**Severity:** LOW · **Languages:** html · **CWE:** CWE-1022 · **Tags:** security, tabnabbing
+
+Review-grade heuristic: target=_blank without rel=noopener lets the new page reach window.opener (reverse tabnabbing).
+
+**Remediation:** Add rel="noopener noreferrer" to target=_blank links.
+
+**Finding message:** target=_blank — confirm rel=noopener is set (reverse tabnabbing).
+
+
+### `megasast/html-insecure-script-src` — HTML script loaded over HTTP
+
+**Severity:** MEDIUM · **Languages:** html · **CWE:** CWE-494 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, transport, mixed-content
+
+A script src fetched over plaintext HTTP can be tampered with in transit.
+
+**Remediation:** Serve scripts over HTTPS from a pinned origin and add subresource integrity (integrity=) hashes.
+
+**Finding message:** Script loaded over plaintext HTTP — tampering risk.
+
+
+### `megasast/html-insecure-iframe-src` — HTML iframe loaded over HTTP
+
+**Severity:** MEDIUM · **Languages:** html · **CWE:** CWE-829 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, transport, mixed-content
+
+An iframe src fetched over plaintext HTTP can be tampered with in transit.
+
+**Remediation:** Serve framed content over HTTPS and restrict it with a sandbox attribute plus frame-ancestors CSP.
+
+**Finding message:** Iframe loaded over plaintext HTTP — tampering risk.
+
+
+### `megasast/html-meta-refresh-js` — HTML meta refresh to javascript: URL
+
+**Severity:** MEDIUM · **Languages:** html · **CWE:** CWE-79 · **OWASP:** A03:2021 Injection · **Tags:** security, xss
+
+A meta refresh redirecting to a javascript: URL executes script.
+
+**Remediation:** Redirect with an HTTP Location header or a plain https: URL. Never target javascript: URLs.
+
+**Finding message:** Meta refresh to javascript: URL — script execution risk.
 
 
 ## Cross-language

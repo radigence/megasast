@@ -48,8 +48,9 @@ def _load_builtin_rules():
     from megasast.rules.go_rules import RULES as GO_RULES
     from megasast.rules.php_rules import RULES as PHP_RULES
     from megasast.rules.rust_rules import RULES as RUST_RULES
+    from megasast.rules.html_rules import RULES as HTML_RULES
     from megasast.rules.secrets_rules import RULES as SECRETS_RULES
-    return PYTHON_RULES + JS_RULES + JAVA_RULES + C_RULES + GO_RULES + PHP_RULES + RUST_RULES + SECRETS_RULES
+    return PYTHON_RULES + JS_RULES + JAVA_RULES + C_RULES + GO_RULES + PHP_RULES + RUST_RULES + HTML_RULES + SECRETS_RULES
 
 def _load_entry_point_rules():
     rules = []

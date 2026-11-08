@@ -229,6 +229,19 @@ CASES: list[tuple[str, list[str], str]] = [
      '// rule: megasast/rust-slice-raw-parts\nfn f(p: *mut u8) {\n    Vec::from_raw_parts(p, 1, 1);\n}\n'),
     ("rust/rust_weak_hash_import.rs", ["megasast/rust-weak-hash-import"],
      '// rule: megasast/rust-weak-hash-import\nuse md5::Digest;\n\nfn f() {}\n'),
+    # ---- HTML (6) ----
+    ("html/html_js_url.html", ["megasast/html-js-url"],
+     '<!-- rule: megasast/html-js-url -->\n<a href="javascript:alert(1)">click</a>\n'),
+    ("html/html_event_handler.html", ["megasast/html-event-handler"],
+     '<!-- rule: megasast/html-event-handler -->\n<button onclick="doThing()">go</button>\n'),
+    ("html/html_target_blank.html", ["megasast/html-target-blank"],
+     '<!-- rule: megasast/html-target-blank -->\n<a href="/docs" target="_blank">docs</a>\n'),
+    ("html/html_insecure_script_src.html", ["megasast/html-insecure-script-src"],
+     '<!-- rule: megasast/html-insecure-script-src -->\n<script src="http://evil.example/app.js"></script>\n'),
+    ("html/html_insecure_iframe_src.html", ["megasast/html-insecure-iframe-src"],
+     '<!-- rule: megasast/html-insecure-iframe-src -->\n<iframe src="http://evil.example/frame"></iframe>\n'),
+    ("html/html_meta_refresh_js.html", ["megasast/html-meta-refresh-js"],
+     '<!-- rule: megasast/html-meta-refresh-js -->\n<meta http-equiv="refresh" content="0;url=javascript:alert(1)">\n'),
     # ---- Cross-language secrets (3, python representative) ----
     ("secrets/aws_access_key.py", ["megasast/aws-access-key"],
      '# rule: megasast/aws-access-key\nk = "AKIAIOSFODNN7EXAMPLE"\n'),
@@ -240,8 +253,8 @@ CASES: list[tuple[str, list[str], str]] = [
 
 README = """# megasast testbed
 
-Synthetic vulnerable-by-design corpus: **one file per rule** (103 files,
-103 rules). Each file contains a minimal true positive and a header comment
+Synthetic vulnerable-by-design corpus: **one file per rule** (109 files,
+109 rules). Each file contains a minimal true positive and a header comment
 with the expected rule id(s).
 
 Intentionally vulnerable — do not deploy, do not copy patterns into
@@ -255,8 +268,8 @@ megasast scan testbed -o report.sarif --format sarif
 ```
 
 Expected: every file fires its documented rule. `go/go_exec_shell.go`
-fires twice (`go-exec-cmd` + `go-exec-shell`) by design, so 103 files
-yield 104 findings. `manifest.json` records the per-file expectation.
+fires twice (`go-exec-cmd` + `go-exec-shell`) by design, so 109 files
+yield 110 findings. `manifest.json` records the per-file expectation.
 
 ## Regenerate
 
