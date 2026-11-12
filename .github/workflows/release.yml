@@ -1,0 +1,52 @@
+name: release
+
+# Publishes to PyPI when a v* tag lands on the repo.
+#
+# One-time setup (repo admin): configure a PyPI trusted publisher for the
+# `megasast` project at https://pypi.org/manage/account/publishing/:
+#   owner: radigence, repository: megasast, workflow name: release.yml,
+#   environment: pypi
+# The environment must exist in this repo's Settings -> Environments as "pypi"
+# (restrict its deployment branch pattern to refs/tags/v*).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tool
+        run: python -m pip install --upgrade pip build
+      - name: Build sdist and wheel
+        run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: pypi
+    permissions:
+      # Required for PyPI trusted publishing (no API token involved).
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

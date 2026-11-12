@@ -49,8 +49,17 @@ def _load_builtin_rules():
     from megasast.rules.php_rules import RULES as PHP_RULES
     from megasast.rules.rust_rules import RULES as RUST_RULES
     from megasast.rules.html_rules import RULES as HTML_RULES
-    from megasast.rules.secrets_rules import RULES as SECRETS_RULES
-    return PYTHON_RULES + JS_RULES + JAVA_RULES + C_RULES + GO_RULES + PHP_RULES + RUST_RULES + HTML_RULES + SECRETS_RULES
+    from megasast.rules.crypto_rules import RULES as CRYPTO_RULES
+    from megasast.rules.yaml_rules import RULES as YAML_RULES
+    from megasast.rules.docker_rules import RULES as DOCKER_RULES
+    from megasast.rules.shell_rules import RULES as SHELL_RULES
+    from megasast.rules.ruby_rules import RULES as RUBY_RULES
+    from megasast.rules.csharp_rules import RULES as CSHARP_RULES
+    return (
+        PYTHON_RULES + JS_RULES + JAVA_RULES + C_RULES + GO_RULES + PHP_RULES
+        + RUST_RULES + HTML_RULES + CRYPTO_RULES + YAML_RULES + DOCKER_RULES
+        + SHELL_RULES + RUBY_RULES + CSHARP_RULES
+    )
 
 def _load_entry_point_rules():
     rules = []

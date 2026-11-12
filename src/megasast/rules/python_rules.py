@@ -80,6 +80,22 @@ PYTHON_YAML_LOAD = Rule(
     owasp="A08:2021 Software and Data Integrity Failures"
 )
 
+PYTHON_YAML_UNSAFE_LOAD = Rule(
+    id="megasast/py-yaml-unsafe-load",
+    name="Python yaml.unsafe_load() usage",
+    description="yaml.unsafe_load() deserializes arbitrary Python objects from YAML and can lead to arbitrary code execution.",
+    severity="HIGH",
+    languages=["python"],
+    queries={
+        "python": "(call function: (attribute object: (identifier) @obj attribute: (identifier) @m) (#eq? @obj \"yaml\") (#eq? @m \"unsafe_load\")) @match"
+    },
+    message="Use of yaml.unsafe_load() — arbitrary code execution risk.",
+    remediation="Use yaml.safe_load() for untrusted YAML and validate the resulting data structure.",
+    tags=["security", "deserialization"],
+    cwe="CWE-502",
+    owasp="A08:2021 Software and Data Integrity Failures"
+)
+
 PYTHON_SUBPROCESS_SHELL = Rule(
     id="megasast/py-subprocess-shell",
     name="Python subprocess with shell=True",
@@ -345,7 +361,8 @@ PYTHON_FLASK_DEBUG = Rule(
 RULES = [
     PYTHON_EVAL, PYTHON_EXEC, PYTHON_OS_SYSTEM, PYTHON_PICKLE_LOAD,
     PYTHON_PICKLE_LOADS, PYTHON_MARSHAL_LOAD,
-    PYTHON_YAML_LOAD, PYTHON_SUBPROCESS_SHELL, PYTHON_ASYNCIO_SUBPROCESS_SHELL,
+    PYTHON_YAML_LOAD, PYTHON_YAML_UNSAFE_LOAD,
+    PYTHON_SUBPROCESS_SHELL, PYTHON_ASYNCIO_SUBPROCESS_SHELL,
     PYTHON_REQUESTS_NO_VERIFY, PYTHON_SSL_UNVERIFIED_CONTEXT,
     PYTHON_HASHLIB_MD5, PYTHON_HASHLIB_SHA1, PYTHON_MKTEMP, PYTHON_OS_MKTEMP,
     PYTHON_CHMOD_777, PYTHON_PLAINTEXT_PROTOCOL, PYTHON_SIMPLE_HTTP_SERVER,

@@ -5,7 +5,7 @@ and remediation guidance. The summary table lives in [README.md](README.md#rules
 
 ## Contents
 
-- [Python (22)](#python)
+- [Python (23)](#python)
 - [JavaScript / TypeScript (14)](#javascript--typescript)
 - [Java (12)](#java)
 - [C / C++ (16)](#c--c)
@@ -13,7 +13,12 @@ and remediation guidance. The summary table lives in [README.md](README.md#rules
 - [PHP (19)](#php)
 - [Rust (8)](#rust)
 - [HTML (6)](#html)
-- [Cross-language (3)](#cross-language)
+- [YAML (3)](#yaml)
+- [Dockerfile (3)](#dockerfile)
+- [Shell (3)](#shell)
+- [Ruby (2)](#ruby)
+- [C# (2)](#c)
+- [Cross-language (1)](#cross-language)
 
 ## Python
 
@@ -92,6 +97,17 @@ yaml.load() without SafeLoader can lead to arbitrary code execution.
 **Remediation:** Use yaml.safe_load() for untrusted YAML and validate the resulting data structure.
 
 **Finding message:** Use of yaml.load() — arbitrary code execution risk.
+
+
+### `megasast/py-yaml-unsafe-load` — Python yaml.unsafe_load() usage
+
+**Severity:** HIGH · **Languages:** python · **CWE:** CWE-502 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, deserialization
+
+yaml.unsafe_load() deserializes arbitrary Python objects from YAML and can lead to arbitrary code execution.
+
+**Remediation:** Use yaml.safe_load() for untrusted YAML and validate the resulting data structure.
+
+**Finding message:** Use of yaml.unsafe_load() — arbitrary code execution risk.
 
 
 ### `megasast/py-subprocess-shell` — Python subprocess with shell=True
@@ -1191,29 +1207,160 @@ A meta refresh redirecting to a javascript: URL executes script.
 **Finding message:** Meta refresh to javascript: URL — script execution risk.
 
 
+## YAML
+
+### `megasast/yaml-unpinned-action` — GitHub Action action pinned to a mutable ref
+
+**Severity:** MEDIUM · **Languages:** yaml · **CWE:** CWE-1357 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, supply-chain, ci-config
+
+A `uses:` reference is not pinned to a full 40-character commit SHA. Tags and branches are mutable, so a compromised action repository can inject code into workflows.
+
+**Remediation:** Pin third-party actions to a full commit SHA (owner/repo@<40-char-sha>) after reviewing the commit.
+
+**Finding message:** Action reference is not pinned to a commit SHA — supply-chain risk.
+
+
+### `megasast/yaml-pr-target-trigger` — GitHub workflow trigger pull_request_target
+
+**Severity:** MEDIUM · **Languages:** yaml · **CWE:** CWE-20 · **OWASP:** A05:2021 Security Misconfiguration · **Tags:** security, ci-config, github-actions
+
+pull_request_target workflows run in the context of the base repository with access to secrets, and checkout of untrusted PR code followed by any script execution leads to code execution.
+
+**Remediation:** Use pull_request instead, or audit the workflow so no checkout of the PR head and no script execution happens before an approval gate.
+
+**Finding message:** Workflow triggers on pull_request_target — secrets are exposed to PR-derived workflow logic.
+
+
+### `megasast/yaml-k8s-privileged` — Privileged Kubernetes container
+
+**Severity:** HIGH · **Languages:** yaml · **CWE:** CWE-250 · **OWASP:** A05:2021 Security Misconfiguration · **Tags:** security, container, kubernetes
+
+privileged: true grants the container near-full root access to the host machine.
+
+**Remediation:** Run with the least privilege required; if a privileged capability is needed, add that single capability instead.
+
+**Finding message:** Container runs with privileged: true — host escape risk.
+
+
+## Dockerfile
+
+### `megasast/docker-curl-pipe-sh` — Dockerfile RUN curl\|wget piped into a shell
+
+**Severity:** HIGH · **Languages:** dockerfile · **CWE:** CWE-494 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, command-injection, container
+
+Piping curl or wget output straight into sh or bash executes a remote payload at build time and provides no integrity checks.
+
+**Remediation:** Download to a file, verify its checksum or signature, then execute; or install through the package manager.
+
+**Finding message:** Build step pipes a downloaded script into a shell — remote code execution risk.
+
+
+### `megasast/docker-unpinned-image` — Dockerfile FROM without a digest pin
+
+**Severity:** MEDIUM · **Languages:** dockerfile · **CWE:** CWE-1357 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, supply-chain, container
+
+A base image referenced only by tag (or implicit :latest) is mutable; a rebuilt image can swap in different contents between builds.
+
+**Remediation:** Reference the image by digest (FROM owner/image@sha256:...) built from a policy-managed tag.
+
+**Finding message:** Base image is not pinned to an immutable digest.
+
+
+### `megasast/docker-add-url` — Dockerfile ADD with a remote URL
+
+**Severity:** MEDIUM · **Languages:** dockerfile · **CWE:** CWE-494 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, container
+
+ADD with a URL downloads the file at build time without authentication or integrity verification; it also adds a cache bloating layer.
+
+**Remediation:** Use COPY for local files, or download with curl/wget plus a checksum verification.
+
+**Finding message:** ADD fetches a remote URL at build time.
+
+
+## Shell
+
+### `megasast/sh-eval` — Shell eval command usage
+
+**Severity:** HIGH · **Languages:** bash · **CWE:** CWE-95 · **OWASP:** A03:2021 Injection · **Tags:** security, command-injection
+
+eval executes a constructed string as code; untrusted input reaching its arguments leads to arbitrary command execution.
+
+**Remediation:** Prefer executing a fixed executable with an argument array instead of re-evaluating a constructed string; validate input format strictly.
+
+**Finding message:** Use of eval — arbitrary code execution risk.
+
+
+### `megasast/sh-curl-pipe-sh` — Shell curl/wget piped into a shell
+
+**Severity:** HIGH · **Languages:** bash · **CWE:** CWE-494 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, command-injection, supply-chain
+
+Piping curl or wget output straight into sh or bash executes a remote payload with no integrity checks.
+
+**Remediation:** Download to a file, verify its checksum or signature, then execute.
+
+**Finding message:** Downloaded script piped into a shell — remote code execution risk.
+
+
+### `megasast/sh-source-variable` — Shell source of a variable path
+
+**Severity:** MEDIUM · **Languages:** bash · **CWE:** CWE-94 · **OWASP:** A03:2021 Injection · **Tags:** security, command-injection
+
+Sourcing a path taken from a variable ($1, $SETUP_DIR, ...) executes whatever is at that path at runtime; positional arguments are attacker-controllable in many contexts (CI, install scripts).
+
+**Remediation:** Source only fixed, repository-controlled paths; validate and expand the script directory explicitly.
+
+**Finding message:** source executes a path taken from a variable — code execution risk.
+
+
+## Ruby
+
+### `megasast/ru-eval` — Ruby eval() usage
+
+**Severity:** HIGH · **Languages:** ruby · **CWE:** CWE-95 · **OWASP:** A03:2021 Injection · **Tags:** security, injection
+
+eval executes a string as Ruby code; untrusted input reaching it leads to arbitrary code execution.
+
+**Remediation:** Parse the expected input format instead of evaluating it; restrict dynamic code paths to a strict allow-list.
+
+**Finding message:** Use of eval() — arbitrary code execution risk.
+
+
+### `megasast/ru-marshal-load` — Ruby Marshal.load usage
+
+**Severity:** HIGH · **Languages:** ruby · **CWE:** CWE-502 · **OWASP:** A08:2021 Software and Data Integrity Failures · **Tags:** security, deserialization
+
+Marshal.load deserializes Ruby object graphs and can lead to arbitrary code execution on untrusted data.
+
+**Remediation:** Do not deserialize untrusted data with Marshal; prefer JSON with schema validation or a data format without executable payloads.
+
+**Finding message:** Use of Marshal.load/loads() — arbitrary code execution risk.
+
+
+## C#
+
+### `megasast/csharp-process-start` — C# Process.Start usage
+
+**Severity:** MEDIUM · **Languages:** csharp · **CWE:** CWE-78 · **OWASP:** A03:2021 Injection · **Tags:** security, command-injection
+
+Process.Start runs an external process; a command string assembled from untrusted input leads to command injection.
+
+**Remediation:** Use the ProcessStartInfo overload with an argument list and UseShellExecute=false; validate any user-controlled input.
+
+**Finding message:** Use of Process.Start — command injection risk.
+
+
+### `megasast/csharp-shell-execute` — C# ProcessStartInfo UseShellExecute=true
+
+**Severity:** HIGH · **Languages:** csharp · **CWE:** CWE-78 · **OWASP:** A03:2021 Injection · **Tags:** security, command-injection
+
+UseShellExecute=true resolves the command through the host shell, which exposes string-built commands to injection and path trickery.
+
+**Remediation:** Use UseShellExecute=false and pass an explicit argument list; restrict the working directory and executable path.
+
+**Finding message:** ProcessStartInfo configured with UseShellExecute — command injection risk.
+
+
 ## Cross-language
-
-### `megasast/aws-access-key` — Hardcoded AWS access key ID
-
-**Severity:** HIGH · **Languages:** python, javascript, typescript, java, c, cpp, go, php, rust · **CWE:** CWE-798 · **OWASP:** A07:2021 Identification and Authentication Failures · **Tags:** security, secrets, hardcoded-credentials
-
-A hardcoded AWS access key ID (AKIA...) exposes cloud credentials to anyone with repository access.
-
-**Remediation:** Revoke the exposed key. Load credentials from a secrets manager or environment at runtime, never from source.
-
-**Finding message:** Hardcoded AWS access key ID — credential exposure risk.
-
-
-### `megasast/hardcoded-secret` — Hardcoded secret in source
-
-**Severity:** MEDIUM · **Languages:** python, javascript, typescript, java, c, cpp, go, php, rust · **CWE:** CWE-798 · **OWASP:** A07:2021 Identification and Authentication Failures · **Tags:** security, secrets, hardcoded-credentials
-
-A string literal assigned to a password/secret/token-like variable may expose credentials in source control.
-
-**Remediation:** Move the secret to a secrets manager or environment variable injected at runtime. If it was committed, rotate it.
-
-**Finding message:** Possible hardcoded secret — credential exposure risk.
-
 
 ### `megasast/insecure-rand` — Predictable random number generator
 

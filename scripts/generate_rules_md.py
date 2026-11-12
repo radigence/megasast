@@ -26,12 +26,18 @@ FAMILIES = [
     ("PHP", {"php"}),
     ("Rust", {"rust"}),
     ("HTML", {"html"}),
+    ("YAML", {"yaml"}),
+    ("Dockerfile", {"dockerfile"}),
+    ("Shell", {"bash"}),
+    ("Ruby", {"ruby"}),
+    ("C#", {"csharp"}),
 ]
 
 LANG_LABELS = {
     "python": "python",
     "javascript": "javascript",
     "typescript": "typescript",
+    "tsx": "tsx",
     "java": "java",
     "c": "c",
     "cpp": "cpp",
@@ -39,6 +45,11 @@ LANG_LABELS = {
     "php": "php",
     "rust": "rust",
     "html": "html",
+    "yaml": "yaml",
+    "dockerfile": "dockerfile",
+    "bash": "bash",
+    "ruby": "ruby",
+    "csharp": "csharp",
 }
 
 
@@ -56,7 +67,7 @@ def esc(text):
 
 def render(rule):
     meta = [f"**Severity:** {rule.severity}",
-            f"**Languages:** {', '.join(LANG_LABELS.get(l, l) for l in rule.languages)}"]
+            f"**Languages:** {', '.join(LANG_LABELS.get(lang, lang) for lang in rule.languages)}"]
     if rule.cwe:
         meta.append(f"**CWE:** {rule.cwe}")
     if rule.owasp:

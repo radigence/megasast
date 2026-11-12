@@ -77,7 +77,8 @@ def discover(root: Path, respect_gitignore: bool = True) -> list[Path]:
         # prune skipped dirs in-place
         dirnames[:] = sorted(d for d in dirnames if not is_skipped_dir(d))
         base = Path(dirpath)
-        for name in filenames:
+        # sort() for deterministic finding order across machines/filesystems
+        for name in sorted(filenames):
             path = base / name
             # Never follow symlinks (or any indirection) that escape the scan
             # root; a crafted tree could otherwise point at sensitive files
