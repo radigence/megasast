@@ -5,6 +5,31 @@ tagged `v<version>` and published as
 [GitHub Releases](https://github.com/radigence/megasast/releases) with full
 verification details; the entries below are summaries.
 
+## [Unreleased]
+
+### Added
+
+- Disable a language from analysis, per scan or per project:
+  - `--language <lang>` / `--no-language <lang>` on `megasast scan` (repeatable;
+    unknown names fail fast with the list of known languages), and
+  - `[megasast.languages]` `only` / `exclude` in `megasast.toml`, with the
+    same CLI-overrides-config precedence as `[megasast.rules]`.
+- Disabling a language skips parsing it entirely, so polyglot monorepos can
+  skip the stack that dominates parse time. Multi-grammar files (`.h` under
+  C and C++) honor the filter per grammar, and the tsx alias means
+  `--no-language typescript` also stops `.tsx` files from being analyzed.
+- SARIF reports now mirror the language filter: rules whose languages are
+  all excluded are omitted from the published rule set, consistent with how
+  `--rule`/`--no-rule` are already mirrored.
+
+### Fixed
+
+- `megasast/docker-curl-pipe-sh` missed `RUN curl ... | sh` instructions in
+  CRLF (Windows) Dockerfiles; the shell-name end anchor now tolerates
+  trailing carriage returns.
+- Restored the missing `testbed/php/php_eval.php` corpus file required by
+  `tests/test_testbed.py`.
+
 ## [0.1.4] — 2026-11-07
 
 ### Added

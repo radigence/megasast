@@ -80,9 +80,15 @@ Flags:
 - `--fail-on high|medium|low` exit non-zero when findings meet threshold
 - `--no-gitignore` ignore .gitignore
 - `--rule <id>` / `--no-rule <id>` filter rules
+- `--language <lang>` / `--no-language <lang>` analyze only / skip a language (repeatable)
 - `--severity high medium low` allow-list severities to report
 - `--baseline <file.sarif>` show only new findings
 - `--version` show version
+
+Known languages: `python`, `javascript`, `typescript`, `tsx`, `java`, `c`, `cpp`,
+`go`, `rust`, `php`, `html`, `yaml`, `bash`, `ruby`, `csharp`, `dockerfile`.
+Disabling a language skips parsing it entirely, so `--no-language` is the
+right lever for large monorepos where one stack dominates parse time.
 
 JSON and SARIF results include each rule's description, tags, severity, and remediation guidance. SARIF also places the guidance in the rule `help` field and the result properties for downstream security platforms.
 
@@ -97,10 +103,15 @@ upwards (so scans from subdirectories pick up the repo config):
 only = ["megasast/py-sql-fstring", "megasast/py-subprocess-shell"]  # optional allow-list
 exclude = ["megasast/html-target-blank"]                            # optional deny-list
 severity = ["high", "medium"]                                       # optional severity allow-list
+
+[megasast.languages]
+only = ["python", "javascript"]   # optional: analyze only these languages
+exclude = ["ruby"]                # optional: skip these languages
 ```
 
-Precedence: explicit CLI flags (`--rule`, `--no-rule`, `--severity`) always
-override `[megasast.rules]` values, which otherwise apply to the scan.
+Precedence: explicit CLI flags (`--rule`, `--no-rule`, `--language`,
+`--no-language`, `--severity`) always override `[megasast.rules]` /
+`[megasast.languages]` values, which otherwise apply to the scan.
 
 Useful scans:
 
@@ -114,6 +125,12 @@ megasast scan . --fail-on high
 
 # point fixes at one language
 megasast scan . --format text --rule megasast/py-subprocess-shell
+
+# skip the languages that dominate parse time on a polyglot monorepo
+megasast scan . --no-language go --no-language rust
+
+# scan only the web tier
+megasast scan . --language javascript --language typescript --language html
 ```
 
 `--baseline` diffing matches on both the exact (rule, path, line, column)

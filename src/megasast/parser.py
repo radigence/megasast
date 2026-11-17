@@ -54,6 +54,37 @@ FILENAME_MAP = {
 # avoids tagging every rule's languages list with a literal "tsx" entry.
 QUERY_ALIAS = {"tsx": "typescript"}
 
+def known_languages() -> set:
+    """Every grammar name the scanner can select.
+
+    Derived from the extension map (plus alias keys) rather than a second
+    hand-maintained list, so the CLI's language validation and the parser
+    can never drift apart.
+    """
+    names = set()
+    for langs in LANG_MAP.values():
+        names.update(langs)
+    names.update(QUERY_ALIAS)
+    return names
+
+def lang_active(lang_name: str, allowed=None, excluded=None) -> bool:
+    """True when a grammar stays in scope under the language filter.
+
+    Alias-aware in the grammar-to-rule-language direction: tsx files run the
+    typescript rule set, so filtering "typescript" filters tsx files. The
+    reverse is file-scoped — filtering "tsx" targets tsx files and leaves
+    .ts files alone.
+    """
+    names = {lang_name}
+    alias = QUERY_ALIAS.get(lang_name)
+    if alias is not None:
+        names.add(alias)
+    if excluded is not None and names & excluded:
+        return False
+    if allowed is not None and not (names & allowed):
+        return False
+    return True
+
 def _decode_bytes(data: bytes) -> Tuple[bytes, str]:
     # Reject binary files containing null bytes
     if b"\x00" in data:
@@ -134,7 +165,7 @@ class TreeSitterParser:
             self._languages[lang_name] = lang
         return self._parsers[lang_name]
 
-    def parse_file(self, path: Path):
+    def parse_file(self, path: Path, allowed_languages=None, excluded_languages=None):
         try:
             data = path.read_bytes()
         except OSError:
@@ -153,9 +184,13 @@ class TreeSitterParser:
         if not lang_names:
             return None
         # A file may be scanned under several grammars (see LANG_MAP); collect
-        # every grammar that binds successfully.
+        # every grammar that binds successfully. Filtering here (instead of
+        # after parsing) means a disabled language is never parsed at all,
+        # which is the whole point of the flag on large repositories.
         pairs = []
         for lang_name in lang_names:
+            if not lang_active(lang_name, allowed_languages, excluded_languages):
+                continue
             parser = self._get_parser(lang_name)
             if parser is None:
                 continue
