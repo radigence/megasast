@@ -5,7 +5,7 @@ tagged `v<version>` and published as
 [GitHub Releases](https://github.com/radigence/megasast/releases) with full
 verification details; the entries below are summaries.
 
-## [Unreleased]
+## [0.2.0] — 2026-11-22
 
 ### Added
 
