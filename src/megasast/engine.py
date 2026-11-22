@@ -71,8 +71,8 @@ def _select_rules(allowed_rules, excluded_rules, allowed_severities):
         selected.append(rule)
     return tuple(selected)
 
-def scan_file(path: Path, parser: TreeSitterParser, allowed_rules=None, excluded_rules=None, allowed_severities=None):
-    result = parser.parse_file(path)
+def scan_file(path: Path, parser: TreeSitterParser, allowed_rules=None, excluded_rules=None, allowed_severities=None, allowed_languages=None, excluded_languages=None):
+    result = parser.parse_file(path, allowed_languages, excluded_languages)
     if result is None:
         return []
     pairs, data = result

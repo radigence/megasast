@@ -7,31 +7,53 @@ from pathlib import Path
 
 from megasast.discovery import discover
 from megasast.engine import scan_file
-from megasast.parser import TreeSitterParser
+from megasast.parser import TreeSitterParser, known_languages, lang_active
 from megasast.sarif import findings_to_sarif, _fingerprint, _rel_uri
 from megasast.rules.registry import RULES
 from megasast.version import __version__
 from megasast.console import print_banner
 
+KNOWN_LANGUAGES = known_languages()
+
 _worker_parser = None
 _worker_allowed_rules = None
 _worker_excluded_rules = None
 _worker_allowed_severities = None
+_worker_allowed_languages = None
+_worker_excluded_languages = None
 
-def _init_worker(allowed_rules=None, excluded_rules=None, allowed_severities=None):
+def _init_worker(allowed_rules=None, excluded_rules=None, allowed_severities=None, allowed_languages=None, excluded_languages=None):
     global _worker_parser, _worker_allowed_rules, _worker_excluded_rules, _worker_allowed_severities
+    global _worker_allowed_languages, _worker_excluded_languages
     _worker_parser = TreeSitterParser()
     _worker_allowed_rules = allowed_rules
     _worker_excluded_rules = excluded_rules
     _worker_allowed_severities = allowed_severities
+    _worker_allowed_languages = allowed_languages
+    _worker_excluded_languages = excluded_languages
 
 def _worker_scan(path_str):
     path = Path(path_str)
     try:
-        return scan_file(path, _worker_parser, _worker_allowed_rules, _worker_excluded_rules, _worker_allowed_severities)
+        return scan_file(path, _worker_parser, _worker_allowed_rules, _worker_excluded_rules,
+                         _worker_allowed_severities, _worker_allowed_languages, _worker_excluded_languages)
     except Exception as e:
         print(f"Error scanning {path_str}: {e}", file=sys.stderr)
         return []
+
+
+def _language_name(value):
+    """argparse type: validate and normalize a --language/--no-language value.
+
+    Fails the scan loudly on a typo (a silently-ignored flag would look like
+    the scan ran with the filter applied when it did not).
+    """
+    name = value.lower()
+    if name not in KNOWN_LANGUAGES:
+        raise argparse.ArgumentTypeError(
+            f"unknown language {value!r}; choose from: {', '.join(sorted(KNOWN_LANGUAGES))}"
+        )
+    return name
 
 
 def _positive_int(value):
@@ -123,6 +145,8 @@ def main():
     scan_parser.add_argument("--no-gitignore", action="store_true")
     scan_parser.add_argument("--rule", action="append", default=[], help="Only include specific rule(s)")
     scan_parser.add_argument("--no-rule", action="append", default=[], help="Exclude specific rule(s)")
+    scan_parser.add_argument("--language", action="append", type=_language_name, default=[], help="Only analyze specific language(s)")
+    scan_parser.add_argument("--no-language", action="append", type=_language_name, default=[], help="Exclude specific language(s) from analysis")
     scan_parser.add_argument("--severity", nargs="+", choices=["high", "medium", "low"], default=None, help="Severity levels to report")
     scan_parser.add_argument("--baseline", default=None, help="Baseline SARIF file to diff against")
     
@@ -154,6 +178,19 @@ def main():
     allowed_rules = cli_allowed if cli_allowed is not None else config_allowed
     excluded_rules = cli_excluded if cli_excluded is not None else config_excluded
     allowed_severities = cli_severities if cli_severities is not None else config_severities
+
+    config_langs = config.get("languages", {})
+    config_allowed_langs = {str(value).lower() for value in config_langs.get("only", [])} or None
+    config_excluded_langs = {str(value).lower() for value in config_langs.get("exclude", [])} or None
+    # Config values skip argparse validation; warn rather than fail so a
+    # stale config cannot break a scan, but the typo is still visible.
+    for name in (config_allowed_langs or set()) | (config_excluded_langs or set()):
+        if name not in KNOWN_LANGUAGES:
+            print(f"Warning: unknown language in config: {name!r} (known: {', '.join(sorted(KNOWN_LANGUAGES))})", file=sys.stderr)
+    cli_allowed_langs = set(args.language) if args.language else None
+    cli_excluded_langs = set(args.no_language) if args.no_language else None
+    allowed_languages = cli_allowed_langs if cli_allowed_langs is not None else config_allowed_langs
+    excluded_languages = cli_excluded_langs if cli_excluded_langs is not None else config_excluded_langs
     
     files = discover(root, respect_gitignore=not args.no_gitignore)
     workers = args.workers if args.workers is not None else (os.cpu_count() or 1)
@@ -167,7 +204,8 @@ def main():
         # default on Windows anyway, so behavior stays consistent across OSes.
         ctx = multiprocessing.get_context("spawn")
         with ctx.Pool(processes=workers, initializer=_init_worker,
-                      initargs=(allowed_rules, excluded_rules, allowed_severities)) as pool:
+                      initargs=(allowed_rules, excluded_rules, allowed_severities,
+                                allowed_languages, excluded_languages)) as pool:
             for i in range(0, len(files), batch_size):
                 batch = files[i:i+batch_size]
                 results = pool.map(_worker_scan, [str(f) for f in batch])
@@ -177,7 +215,8 @@ def main():
     else:
         parser = TreeSitterParser()
         for i, f in enumerate(files, 1):
-            findings.extend(scan_file(f, parser, allowed_rules, excluded_rules, allowed_severities))
+            findings.extend(scan_file(f, parser, allowed_rules, excluded_rules, allowed_severities,
+                                     allowed_languages, excluded_languages))
             if total > 0 and i % max(1, total // 20) == 0:
                 print(f"Scanned {i}/{total} files...", file=sys.stderr)
     
@@ -191,12 +230,17 @@ def main():
             print(f"Warning: could not load baseline {args.baseline}: {e}", file=sys.stderr)
 
     # Mirror the active rule selection in the SARIF report so consumers
-    # don't see disabled rules as result-less.
+    # don't see disabled rules as result-less. A rule is only active while at
+    # least one of its languages survives the language filter (alias-aware,
+    # so disabling "typescript" also deactivates rules that only reach files
+    # through the tsx grammar).
     active_rule_ids = {
         r.id for r in RULES
         if (allowed_rules is None or r.id in allowed_rules)
         and (excluded_rules is None or r.id not in excluded_rules)
         and (allowed_severities is None or str(r.severity).lower() in allowed_severities)
+        and (allowed_languages is None and excluded_languages is None
+             or any(lang_active(lang, allowed_languages, excluded_languages) for lang in r.languages))
     }
     if args.format == "sarif":
         sarif = findings_to_sarif(findings, root, active_rule_ids)

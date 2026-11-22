@@ -208,7 +208,7 @@ CASES: list[tuple[str, list[str], str]] = [
      '// rule: megasast/go-unsafe-import\npackage sample\n\nimport "unsafe"\n'),
     # ---- PHP (19) ----
     ("php/php_eval.php", ["megasast/php-eval"],
-     '<?php // rule: megasast/php-eval\neval($_GET["x"]);\n?>'),
+     '<?php // rule: megasast/php-eval\neval($code);\n?>'),
     ("php/php_exec.php", ["megasast/php-exec"],
      '<?php // rule: megasast/php-exec\nexec($c);\n?>'),
     ("php/php_system.php", ["megasast/php-system"],

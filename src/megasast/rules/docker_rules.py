@@ -12,7 +12,7 @@ DOCKER_CURL_PIPE_SH = Rule(
     severity="HIGH",
     languages=["dockerfile"],
     queries={
-        "dockerfile": "(run_instruction (shell_command (shell_fragment) @frag) (#match? @frag \"(curl|wget).*[|][ ]*(sh|bash|zsh|sudo)([ ]|$)\")) @match",
+        "dockerfile": "(run_instruction (shell_command (shell_fragment) @frag) (#match? @frag \"(curl|wget).*[|][ ]*(sh|bash|zsh|sudo)([ \\t\\r\\n]|$)\")) @match",
     },
     message="Build step pipes a downloaded script into a shell — remote code execution risk.",
     remediation="Download to a file, verify its checksum or signature, then execute; or install through the package manager.",
