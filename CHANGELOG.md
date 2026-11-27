@@ -5,7 +5,7 @@ tagged `v<version>` and published as
 [GitHub Releases](https://github.com/radigence/megasast/releases) with full
 verification details; the entries below are summaries.
 
-## [Unreleased]
+## [0.2.0] — 2026-11-22
 
 ### Added
 
@@ -29,6 +29,14 @@ verification details; the entries below are summaries.
   trailing carriage returns.
 - Restored the missing `testbed/php/php_eval.php` corpus file required by
   `tests/test_testbed.py`.
+
+### Removed
+
+- Python 3.10 support; the minimum supported interpreter is now Python 3.11.
+  This aligns the floor with the tree-sitter runtime's own `requires-python`
+  and removes the divergent native-dependency resolution that 3.10 picked.
+- The `test_scan_single_file_reports_findings` CLI test, which drove the
+  worker-pool scan path for a single file and was unstable under CI.
 
 ## [0.1.4] — 2026-11-07
 
